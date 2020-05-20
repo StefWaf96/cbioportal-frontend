@@ -25,7 +25,7 @@ import {
 } from './clinicalInformation/PatientViewPageStore';
 import ClinicalInformationPatientTable from './clinicalInformation/ClinicalInformationPatientTable';
 import ClinicalInformationSamples from './clinicalInformation/ClinicalInformationSamplesTable';
-import { inject, observer } from 'mobx-react';
+import { inject, Observer, observer } from 'mobx-react';
 import { getSpanElementsFromCleanData } from './clinicalInformation/lib/clinicalAttributesUtil.js';
 import CopyNumberTableWrapper from './copyNumberAlterations/CopyNumberTableWrapper';
 import { action, computed, observable, reaction } from 'mobx';
@@ -78,6 +78,7 @@ import {
 import ResourcesTab, { RESOURCES_TAB_NAME } from './resources/ResourcesTab';
 import { MakeMobxView } from '../../shared/components/MobxView';
 import ResourceTab from '../../shared/components/resources/ResourceTab';
+import Timeline2 from 'pages/patientView/timeline2/App';
 
 export interface IPatientViewPageProps {
     params: any; // react route
@@ -881,6 +882,21 @@ export default class PatientViewPage extends React.Component<
                                         this.patientViewPageStore.clinicalEvents
                                             .result.length > 0 && (
                                             <div>
+                                                <Observer>
+                                                    {() => {
+                                                        return (
+                                                            <Timeline2
+                                                                data={
+                                                                    this
+                                                                        .patientViewPageStore
+                                                                        .clinicalEvents
+                                                                        .result
+                                                                }
+                                                            />
+                                                        );
+                                                    }}
+                                                </Observer>
+
                                                 <Timeline
                                                     store={
                                                         this

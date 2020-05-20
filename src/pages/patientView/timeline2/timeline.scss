@@ -1,0 +1,146 @@
+$width: 1200px;
+$borderColor: #ccc;
+$tickRowHeight: 20px;
+$rowHeight: 20px;
+
+.tl-timeline-wrapper {
+    margin-bottom: 50px;
+}
+
+.tl-timelineviewport {
+    border: 1px solid $borderColor;
+    border-top: none;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    display: inline-block;
+    flex-grow: 1;
+}
+
+.tl-timeline-display {
+    display: flex;
+}
+
+.tl-timeline {
+    //width:$width;
+    position: relative;
+
+    .tl-row {
+        height: $rowHeight;
+        position: relative;
+        z-index: 10;
+        display: flex;
+        border-bottom: 1px dashed #eee;
+        align-items: center;
+    }
+
+    .tl-item {
+        min-width: 1px;
+        position: absolute;
+        display: inline-block;
+    }
+
+    .tl-item-point {
+        transform: translate(-50%, 0%);
+        font-size: 9px;
+        color: lightblue;
+    }
+
+    .tl-item-range {
+        min-width: 1px;
+        background-color: lightblue;
+        border-radius: 5px;
+        height: 5px;
+    }
+
+    .tl-trim-region {
+        background: orange;
+        bottom: 0;
+        top: 0;
+        position: absolute;
+        z-index: 0;
+    }
+
+    .tl-ticks {
+        position: relative;
+        height: $tickRowHeight;
+        border-bottom: 1px solid $borderColor;
+
+        > div {
+            position: absolute;
+            height: $rowHeight;
+            min-width: 1px;
+            font-size: 9px;
+            transform: translate(-50%, 0%);
+
+            .fa {
+                font-size: 14px;
+            }
+
+            .tl-tickline {
+                position: absolute;
+                height: 6px;
+                width: 1px;
+                left: 50%;
+                bottom: 0;
+                background-color: #000;
+            }
+
+            .tl-timeline-minortick {
+                position: absolute;
+                height: 5px;
+                width: 1px;
+                left: 50%;
+                bottom: 0;
+
+                div {
+                    height: 3px !important;
+                    width: 1px;
+                    position: absolute;
+                    background: blue;
+                    bottom: 0;
+                }
+
+                &:first-child {
+                    display: none;
+                }
+            }
+        }
+
+        > :first-child {
+            display: none;
+        }
+    }
+
+    .tl-timeline-trim {
+        .tl-timeline-tickline {
+            display: none;
+        }
+    }
+}
+
+.tl-timeline-leftbar {
+    padding-top: $tickRowHeight + 1;
+
+    .tl-timeline-tracklabels {
+        font-size: 12px;
+        > div {
+            display: flex;
+            white-space: nowrap;
+            flex-direction: row;
+            align-items: center;
+            height: $rowHeight;
+            border-bottom: 1px dashed #eee;
+            padding-right: 10px;
+        }
+    }
+}
+
+.tl-zoom-selectbox {
+    position: absolute;
+    height: 1000px;
+    background: #ccc;
+    left: 100px;
+    z-index: 100;
+    opacity: 0.3;
+    display: none;
+}

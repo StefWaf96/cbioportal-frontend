@@ -893,6 +893,7 @@ export class PatientViewPageStore {
         {
             await: () => [this.patientViewData],
             invoke: async () => {
+                console.log('here i am');
                 return await client.getAllClinicalEventsOfPatientInStudyUsingGET(
                     {
                         studyId: this.studyId,
