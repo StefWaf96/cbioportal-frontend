@@ -4,7 +4,6 @@ $tickRowHeight: 20px;
 $rowHeight: 20px;
 
 .tl-timeline-wrapper {
-    margin-bottom: 50px;
 }
 
 .tl-timelineviewport {
@@ -13,6 +12,7 @@ $rowHeight: 20px;
     overflow-x: scroll;
     overflow-y: hidden;
     display: inline-block;
+    width: $width;
     flex-grow: 1;
 }
 
@@ -21,7 +21,6 @@ $rowHeight: 20px;
 }
 
 .tl-timeline {
-    //width:$width;
     position: relative;
 
     .tl-row {
@@ -31,6 +30,10 @@ $rowHeight: 20px;
         display: flex;
         border-bottom: 1px dashed #eee;
         align-items: center;
+
+        &:hover {
+            background-color: #f2f2f2;
+        }
     }
 
     .tl-item {
@@ -84,25 +87,25 @@ $rowHeight: 20px;
                 bottom: 0;
                 background-color: #000;
             }
+        }
 
-            .tl-timeline-minortick {
-                position: absolute;
-                height: 5px;
+        .tl-timeline-minortick {
+            position: absolute;
+            height: 15px;
+            left: 50%;
+            bottom: 0;
+            font-weight: normal;
+
+            div {
+                height: 3px !important;
                 width: 1px;
-                left: 50%;
+                position: absolute;
+                background: blue;
                 bottom: 0;
+            }
 
-                div {
-                    height: 3px !important;
-                    width: 1px;
-                    position: absolute;
-                    background: blue;
-                    bottom: 0;
-                }
-
-                &:first-child {
-                    display: none;
-                }
+            &:first-child {
+                display: none;
             }
         }
 

@@ -882,34 +882,33 @@ export default class PatientViewPage extends React.Component<
                                         this.patientViewPageStore.clinicalEvents
                                             .result.length > 0 && (
                                             <div>
-                                                <Observer>
-                                                    {() => {
-                                                        return (
-                                                            <Timeline2
-                                                                data={
-                                                                    this
-                                                                        .patientViewPageStore
-                                                                        .clinicalEvents
-                                                                        .result
-                                                                }
-                                                            />
-                                                        );
-                                                    }}
-                                                </Observer>
+                                                <div>
+                                                    <Timeline2
+                                                        data={
+                                                            this
+                                                                .patientViewPageStore
+                                                                .clinicalEvents
+                                                                .result
+                                                        }
+                                                    />
+                                                </div>
 
-                                                <Timeline
-                                                    store={
-                                                        this
-                                                            .patientViewPageStore
-                                                    }
-                                                    width={
-                                                        WindowStore.size.width -
-                                                        60
-                                                    }
-                                                    sampleManager={
-                                                        sampleManager
-                                                    }
-                                                />
+                                                <div style={{ marginTop: 20 }}>
+                                                    <Timeline
+                                                        store={
+                                                            this
+                                                                .patientViewPageStore
+                                                        }
+                                                        width={
+                                                            WindowStore.size
+                                                                .width - 60
+                                                        }
+                                                        sampleManager={
+                                                            sampleManager
+                                                        }
+                                                    />
+                                                </div>
+
                                                 <hr />
                                             </div>
                                         )}

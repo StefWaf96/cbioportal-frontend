@@ -25,10 +25,20 @@ export class TimelineStore {
 
     @observable.ref zoomBounds: { start: number; end: number } | undefined;
 
+    dragging:
+        | { start: number | null; end: number | null }
+        | undefined = undefined;
+
     get viewPortWidth() {
-        // ;  const width = $(".tl-timelineviewport").width()!;
-        //return width
-        return 1300;
+        const width = $('.tl-timelineviewport').width()!;
+        return width;
+        //return 1200;
+    }
+
+    get timelineWidthInPixels() {
+        const width = $('.tl-timeline').width()!;
+        return width;
+        //return 1200;
     }
 
     setZoomBounds(start: number, end: number) {
@@ -62,19 +72,23 @@ export class TimelineStore {
     }
 
     @computed get trimmedLimit() {
-        return getPointInTrimmedSpace(this.limit, this.ticks);
+        return this.lastTick.end + Math.abs(this.firstTick.start);
     }
 
     @observable.ref data: TimelineTrack[];
 
     @computed get allItems() {
-        const items = _.chain(this.data)
-            .map(t => t.items)
-            .flatten()
-            .sortBy(item => item.start)
-            .value();
+        function getItems(track: TimelineTrack) {
+            if (track.tracks && track.tracks.length > 0) {
+                return track.tracks.map(t => t.items);
+            } else {
+                return track.items;
+            }
+        }
 
-        return items;
+        const events = _.flattenDeep(this.data.map(t => getItems(t)));
+
+        return _.sortBy(events, e => e.start);
     }
 
     @computed get ticks() {
@@ -92,17 +106,11 @@ export class TimelineStore {
 
         const fullTicks = getFullTicks(this.allItems, TickIntervalEnum.MONTH);
 
-        console.log('fulltics', fullTicks);
-
         trimmedTicks = getTrimmedTicks(fullTicks);
-
-        console.log('trimmedTicks', trimmedTicks);
 
         const tickWidth = this.viewPortWidth / trimmedTicks.length;
 
-        console.log('tickWdith', tickWidth);
-
-        if (tickWidth < 100) {
+        if (true || tickWidth < 100) {
             const fullTicks = getFullTicks(
                 this.allItems,
                 TickIntervalEnum.YEAR
@@ -137,6 +145,14 @@ export class TimelineStore {
         }
     }
 
+    @computed get tickPixelWidth() {
+        // pixel width equals total pixel width / number of ticks (trims are zero width, so discard them)
+        return (
+            (this.viewPortWidth * this.zoomLevel) /
+            this.ticks.filter(t => !t.isTrim).length
+        );
+    }
+
     @computed get zoomRange() {
         if (this.zoomBounds) {
             return {
@@ -157,20 +173,22 @@ export class TimelineStore {
     }
 
     @computed get zoomLevel() {
-        return this.absoluteWidth / this.zoomedWidth!;
+        return !this.zoomedWidth ? 1 : this.absoluteWidth / this.zoomedWidth!;
     }
+
+    @observable hoveredRowIndex: number | undefined;
 
     setScroll() {
         const trimmedPos = this.getPosition(
             { start: this.zoomBounds!.start, end: this.zoomBounds!.end },
-            this.trimmedLimit
+            this.absoluteWidth
         );
 
         // @ts-ignore
         const perc =
-            (parseFloat(trimmedPos.left) / 100) * $('#timeline').width();
+            (parseFloat(trimmedPos.left) / 100) * $('#tl-timeline').width();
 
         //@ts-ignore
-        document.getElementById('timeline')!.parentNode!.scrollLeft = perc;
+        document.getElementById('tl-timeline')!.parentNode!.scrollLeft = perc;
     }
 }

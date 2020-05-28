@@ -6,6 +6,7 @@ export interface TimelineEvent {
 export interface TimelineTrack {
     items: TimelineEvent[];
     type: string;
+    tracks?: TimelineTrack[];
 }
 
 export interface TimelineTick {

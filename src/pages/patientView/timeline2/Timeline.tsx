@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Observer, observer } from 'mobx-react';
 import { Range } from 'rc-slider';
 import TimelineTracks from './TimelineTracks';
@@ -9,37 +9,47 @@ import {
     getPointInTrimmedSpace,
     getPointInTrimmedSpaceFromScreenRead,
 } from './lib/tick_helpers';
+import intersect from './lib/intersect';
+import TrackHeader from './TrackHeader';
+import { TickIntervalEnum, TimelineTick } from './types';
+import TickRow from './TickRow';
 
-//const $: any = (window as any).$;
+(window as any).$ = $;
 
 interface ITimelineProps {
     store: TimelineStore;
 }
 
-function handleMouseMove(e: any) {
-    $('.tl-cursor').css('left', e.clientX - $('.tl-timeline').offset()!.left);
-}
+const getFocusedPoints = _.debounce(function(
+    point: number,
+    store: TimelineStore
+) {
+    const p = getPointInTrimmedSpaceFromScreenRead(point, store.ticks);
 
-let dragging:
-    | { start: number | null; end: number | null }
-    | undefined = undefined;
+    const focusedPoints = store.allItems.filter(event =>
+        intersect(p - 5, p + 5, event.start - 5, event.end + 5)
+    );
 
-function handleDrag(e: any, store: TimelineStore) {
+    return focusedPoints;
+},
+100);
+
+function handleMouseEvents(e: any, store: TimelineStore, refs: any) {
+    const $timeline = $(refs.timeline.current);
+    const $zoomSelectBox = $(refs.zoomSelectBox.current);
+
     switch (e.type) {
         case 'mouseup':
-            if (dragging) {
-                const width = $('.tl-timeline').width()!;
-                const percStart = dragging.start! / width;
-                const percEnd = dragging.end! / width;
-                const total = store.trimmedLimit;
-                const startVal = percStart * total;
-                const endVal = percEnd * total;
-
+            if (store.dragging) {
+                const width = $timeline.width()!;
+                const percStart = store.dragging.start! / width;
+                const percEnd = store.dragging.end! / width;
+                const startVal = percStart * store.absoluteWidth;
+                const endVal = percEnd * store.absoluteWidth;
                 const myStart = getPointInTrimmedSpaceFromScreenRead(
                     startVal,
                     store.ticks
                 );
-
                 const myEnd = getPointInTrimmedSpaceFromScreenRead(
                     endVal,
                     store.ticks
@@ -47,91 +57,132 @@ function handleDrag(e: any, store: TimelineStore) {
 
                 store.setZoomBounds(myStart, myEnd);
 
-                dragging = undefined;
+                store.dragging = undefined;
 
-                $('.tl-zoom-selectbox').hide();
+                $zoomSelectBox.hide();
             }
 
-            dragging = undefined;
+            store.dragging = undefined;
             break;
         case 'mousedown':
-            dragging = { start: null, end: null };
+            store.dragging = { start: null, end: null };
             break;
 
         case 'mousemove':
-            if (dragging) {
-                const pos = e.clientX - $('.tl-timeline').offset()!.left;
+            const pos = e.clientX - $timeline.offset()!.left;
+            if (store.dragging) {
                 e.preventDefault();
-                if (dragging.start === null) {
-                    dragging.start = pos;
+                if (store.dragging.start === null) {
+                    store.dragging.start = pos;
                 }
-                dragging.end = pos;
+                store.dragging.end = pos;
 
-                $('.tl-zoom-selectbox')
-                    .show()
-                    .css({
-                        left:
-                            dragging.start < dragging.end
-                                ? dragging.start
-                                : dragging.end,
-                        width: Math.abs(dragging.end - dragging.start),
-                    });
+                $zoomSelectBox.show().css({
+                    left:
+                        store.dragging.start < store.dragging.end
+                            ? store.dragging.start
+                            : store.dragging.end,
+                    width: Math.abs(store.dragging.end - store.dragging.start),
+                });
+            } else {
+                const point = (pos / $timeline.width()!) * store.absoluteWidth;
+
+                getFocusedPoints(point, store);
+
+                $(refs.cursor.current).css(
+                    'left',
+                    e.clientX - $timeline.offset()!.left
+                );
             }
             break;
     }
 }
 
 const Timeline: React.FunctionComponent<ITimelineProps> = function({ store }) {
-    const [viewPortWidth, setViewPortWidth] = useState(0);
+    const [viewPortWidth, setViewPortWidth] = useState(null);
+
+    const [zoomBound, setZoomBound] = useState<string | null>(null);
+
+    const refs = {
+        cursor: useRef(null),
+        wrapper: useRef(null),
+        timeline: useRef(null),
+        zoomSelectBox: useRef(null),
+    };
 
     // on mount, there will be no element to measure, so we need to do this on equivalent
     // of componentDidMount
     useEffect(() => {
         setTimeout(() => {
             setViewPortWidth(store.viewPortWidth);
-        }, 1000);
+        }, 10);
     }, []);
-
-    const [zoomBound, setZoomBound] = useState<string | null>(null);
 
     return (
         <Observer>
             {() => {
-                const me = store.ticks;
-
-                console.log(viewPortWidth);
-
                 let myZoom = 1;
                 if (store.zoomRange && store.zoomedWidth) {
                     myZoom = store.absoluteWidth / store.zoomedWidth;
                 }
 
                 return (
-                    <div
-                        className={'tl-timeline-wrapper'}
-                        id={'timeline-wrapper'}
-                    >
+                    <div ref={refs.wrapper} className={'tl-timeline-wrapper'}>
+                        {store.hoveredRowIndex !== undefined && (
+                            <style>
+                                {`
+                                    .tl-timeline-tracklabels > div:nth-child(${store.hoveredRowIndex +
+                                        1}) {
+                                            background:#F2F2F2;
+                                        }
+                                    }
+                                    `}
+                            </style>
+                        )}
+
                         <div className={'tl-timeline-display'}>
                             <div className={'tl-timeline-leftbar'}>
                                 <div className={'tl-timeline-tracklabels'}>
-                                    {store.data.map(row => {
-                                        return <div>{row.type}</div>;
+                                    {store.data.map((track, i) => {
+                                        return <TrackHeader track={track} />;
                                     })}
                                 </div>
                             </div>
 
                             <div
                                 className={'tl-timelineviewport'}
-                                onMouseDown={e => handleDrag(e, store)}
-                                onMouseUp={e => handleDrag(e, store)}
-                                onMouseMove={e => handleDrag(e, store)}
+                                onMouseDown={e =>
+                                    handleMouseEvents(e, store, refs)
+                                }
+                                onMouseUp={e =>
+                                    handleMouseEvents(e, store, refs)
+                                }
+                                onMouseMove={e =>
+                                    handleMouseEvents(e, store, refs)
+                                }
                             >
-                                {viewPortWidth && viewPortWidth > 0 && (
-                                    <TimelineTracks
-                                        handleMouseMove={handleMouseMove}
-                                        store={store}
-                                        width={viewPortWidth * myZoom}
-                                    />
+                                {viewPortWidth > 0 && store.ticks && (
+                                    <div
+                                        className={'tl-timeline'}
+                                        style={{
+                                            width: viewPortWidth * myZoom,
+                                        }}
+                                        id={'tl-timeline'}
+                                        ref={refs.timeline}
+                                    >
+                                        <div
+                                            ref={refs.cursor}
+                                            className={'tl-cursor'}
+                                        ></div>
+                                        <div
+                                            ref={refs.zoomSelectBox}
+                                            className={'tl-zoom-selectbox'}
+                                        ></div>
+
+                                        <TickRow store={store} />
+
+                                        <TimelineTracks store={store} />
+                                    </div>
                                 )}
                             </div>
                         </div>
