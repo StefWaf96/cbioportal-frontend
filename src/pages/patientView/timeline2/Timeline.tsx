@@ -89,10 +89,10 @@ function handleMouseEvents(e: any, store: TimelineStore, refs: any) {
 
                 getFocusedPoints(point, store);
 
-                $(refs.cursor.current).css(
-                    'left',
-                    e.clientX - $timeline.offset()!.left
-                );
+                $(refs.cursor.current).css({
+                    left: e.clientX - $timeline.offset()!.left,
+                    display: 'block',
+                });
             }
             break;
     }

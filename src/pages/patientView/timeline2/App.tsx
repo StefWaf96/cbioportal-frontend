@@ -119,6 +119,8 @@ const Timeline2: React.FunctionComponent<{ data: ClinicalEvent }> = function({
 
     const keyedSplits = _.keyBy(splitConfig, arr => arr[0]);
 
+    //data[0].startNumberOfDaysSinceDiagnosis = -720;
+
     const cats = getData(data);
 
     const merged = _.uniq(

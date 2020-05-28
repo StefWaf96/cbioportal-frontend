@@ -83,11 +83,20 @@ const TickRow: React.FunctionComponent<ITickRowProps> = observer(function({
                                 let minorCount = i;
                                 if (count < 0) {
                                     minorCount = 12 - i;
+                                    majorLabel =
+                                        count + 1 === 0
+                                            ? ''
+                                            : `${count + 1}${unit}`;
+                                    minorLabel =
+                                        count === -1
+                                            ? `-${minorCount}m`
+                                            : `${majorLabel} ${minorCount}m`;
+                                } else {
+                                    minorLabel =
+                                        count === 0
+                                            ? `${minorCount}m`
+                                            : `${majorLabel} ${minorCount}m`;
                                 }
-                                minorLabel =
-                                    count === 0
-                                        ? `${minorCount}m`
-                                        : `${majorLabel} ${minorCount}m`;
                             }
 
                             minorTicks.push(

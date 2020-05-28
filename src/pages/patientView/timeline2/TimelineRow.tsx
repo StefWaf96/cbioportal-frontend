@@ -59,6 +59,7 @@ export const TimelineRow: React.FunctionComponent<
                                 overlay={
                                     <span>{`${item.start}/${item.end}`}</span>
                                 }
+                                destroyTooltipOnHide={true}
                             >
                                 <div
                                     style={style}

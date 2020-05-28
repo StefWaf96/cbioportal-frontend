@@ -7,9 +7,10 @@ $rowHeight: 20px;
 }
 
 .tl-timelineviewport {
-    border: 1px solid $borderColor;
+    border-left: 1px solid $borderColor;
+    border-right: 1px solid $borderColor;
     border-top: none;
-    overflow-x: scroll;
+    overflow-x: auto;
     overflow-y: hidden;
     display: inline-block;
     width: $width;
@@ -22,6 +23,16 @@ $rowHeight: 20px;
 
 .tl-timeline {
     position: relative;
+
+    .tl-cursor {
+        position: absolute;
+        top: 0;
+        left: 0px;
+        border-left: 1px dashed #999;
+        width: 1px;
+        height: 1000px;
+        display: none;
+    }
 
     .tl-row {
         height: $rowHeight;
@@ -46,6 +57,7 @@ $rowHeight: 20px;
         transform: translate(-50%, 0%);
         font-size: 9px;
         color: lightblue;
+        width: auto !important;
     }
 
     .tl-item-range {
@@ -122,7 +134,7 @@ $rowHeight: 20px;
 }
 
 .tl-timeline-leftbar {
-    padding-top: $tickRowHeight + 1;
+    padding-top: $tickRowHeight;
 
     .tl-timeline-tracklabels {
         font-size: 12px;

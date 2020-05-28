@@ -41,12 +41,3 @@
 .rc-tooltip-inner {
     min-height: 0 !important;
 }
-
-.tl-cursor {
-    position: absolute;
-    top: 0;
-    left: 0px;
-    border-left: 1px dashed #999;
-    width: 1px;
-    height: 1000px;
-}
