@@ -4,6 +4,13 @@ $tickRowHeight: 20px;
 $rowHeight: 20px;
 
 .tl-timeline-wrapper {
+    position: relative;
+
+    .tl-timeline-unzoom {
+        position: absolute;
+        top: -25px;
+        left: 50%;
+    }
 }
 
 .tl-timelineviewport {

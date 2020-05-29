@@ -882,7 +882,12 @@ export default class PatientViewPage extends React.Component<
                                         this.patientViewPageStore.clinicalEvents
                                             .result.length > 0 && (
                                             <div>
-                                                <div>
+                                                <div
+                                                    style={{
+                                                        marginTop: 20,
+                                                        marginBottom: 40,
+                                                    }}
+                                                >
                                                     <Timeline2
                                                         data={
                                                             this

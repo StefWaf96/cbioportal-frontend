@@ -3,7 +3,7 @@ import './App.css';
 import './timeline.scss';
 import _ from 'lodash';
 import $ from 'jquery';
-import { Observer } from 'mobx-react';
+import { Observer, observer } from 'mobx-react-lite';
 
 import { TimelineTrack } from './types';
 import 'rc-slider/assets/index.css';
@@ -95,83 +95,81 @@ function splitCats(splits: string[], cat: any): TimelineTrack {
 //
 // }
 
-const Timeline2: React.FunctionComponent<{ data: ClinicalEvent }> = function({
-    data,
-}) {
-    const [events, setEvents] = useState<TimelineTrack[] | null>(null);
+const Timeline2: React.FunctionComponent<{ data: ClinicalEvent[] }> = observer(
+    function({ data }) {
+        const [events, setEvents] = useState<TimelineTrack[] | null>(null);
 
-    let splitConfig = [
-        ['TREATMENT', 'TREATMENT_TYPE', 'SUBTYPE', 'AGENT'],
-        ['LAB_TEST', 'TEST'],
-    ];
+        const [store, setStore] = useState<TimelineStore | null>(null);
 
-    const sortOrder = [
-        'Specimen',
-        'Surgery',
-        'Med Onc Assessment',
-        'Status',
-        'Diagnostics',
-        'Diagnostic',
-        'Imaging',
-        'Lab_test',
-        'Treatment',
-    ];
+        useEffect(() => {
+            let splitConfig = [
+                ['TREATMENT', 'TREATMENT_TYPE', 'SUBTYPE', 'AGENT'],
+                ['LAB_TEST', 'TEST'],
+            ];
 
-    const keyedSplits = _.keyBy(splitConfig, arr => arr[0]);
+            const sortOrder = [
+                'Specimen',
+                'Surgery',
+                'Med Onc Assessment',
+                'Status',
+                'Diagnostics',
+                'Diagnostic',
+                'Imaging',
+                'Lab_test',
+                'Treatment',
+            ];
 
-    //data[0].startNumberOfDaysSinceDiagnosis = -720;
+            const keyedSplits = _.keyBy(splitConfig, arr => arr[0]);
 
-    const cats = getData(data);
+            //data[0].startNumberOfDaysSinceDiagnosis = -720;
 
-    const merged = _.uniq(
-        sortOrder.map(name => name.toUpperCase()).concat(Object.keys(cats))
-    );
-    const sortedCats = _.reduce(
-        merged,
-        (agg: { [k: string]: any }, key) => {
-            if (key in cats) {
-                agg[key] = cats[key];
-            }
-            return agg;
-        },
-        {}
-    );
+            const cats = getData(data);
 
-    const d = _.map(sortedCats, (cat, key) => {
-        if (key in keyedSplits) {
-            const splits = splitCats(keyedSplits[key].slice(1), cat);
-            return {
-                type: key,
-                items: [],
-                tracks: splits.tracks,
-            };
+            const merged = _.uniq(
+                sortOrder
+                    .map(name => name.toUpperCase())
+                    .concat(Object.keys(cats))
+            );
+            const sortedCats = _.reduce(
+                merged,
+                (agg: { [k: string]: any }, key) => {
+                    if (key in cats) {
+                        agg[key] = cats[key];
+                    }
+                    return agg;
+                },
+                {}
+            );
+
+            const d = _.map(sortedCats, (cat, key) => {
+                if (key in keyedSplits) {
+                    const splits = splitCats(keyedSplits[key].slice(1), cat);
+                    return {
+                        type: key,
+                        items: [],
+                        tracks: splits.tracks,
+                    };
+                } else {
+                    return {
+                        type: key,
+                        items: makeItems(cat),
+                    };
+                }
+            });
+
+            const store = new TimelineStore(d);
+
+            setStore(store);
+
+            (window as any).store = store;
+        }, []);
+
+        if (store) {
+            return <Timeline store={store} />;
         } else {
-            return {
-                type: key,
-                items: makeItems(cat),
-            };
+            return <div></div>;
         }
-    });
-
-    //setEvents(d);
-
-    const store = new TimelineStore(d);
-
-    (window as any).store = store;
-
-    if (!store) {
-        return <div>Loading</div>;
-    } else {
-        return (
-            <div className="App">
-                <Observer>
-                    {() => {
-                        return <Timeline store={store} />;
-                    }}
-                </Observer>
-            </div>
-        );
     }
-};
+);
 
 export default Timeline2;

@@ -1,17 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Observer, observer } from 'mobx-react';
-import { Range } from 'rc-slider';
+import { Observer, observer } from 'mobx-react-lite';
 import TimelineTracks from './TimelineTracks';
 import { TimelineStore } from './TimelineStore';
 import _ from 'lodash';
 import $ from 'jquery';
-import {
-    getPointInTrimmedSpace,
-    getPointInTrimmedSpaceFromScreenRead,
-} from './lib/tick_helpers';
+import { getPointInTrimmedSpaceFromScreenRead } from './lib/tick_helpers';
 import intersect from './lib/intersect';
 import TrackHeader from './TrackHeader';
-import { TickIntervalEnum, TimelineTick } from './types';
 import TickRow from './TickRow';
 
 (window as any).$ = $;
@@ -98,10 +93,14 @@ function handleMouseEvents(e: any, store: TimelineStore, refs: any) {
     }
 }
 
-const Timeline: React.FunctionComponent<ITimelineProps> = function({ store }) {
-    const [viewPortWidth, setViewPortWidth] = useState(null);
+const Timeline: React.FunctionComponent<ITimelineProps> = observer(function({
+    store,
+}) {
+    const [viewPortWidth, setViewPortWidth] = useState<number | null>(null);
 
     const [zoomBound, setZoomBound] = useState<string | null>(null);
+
+    console.log('rending timeline');
 
     const refs = {
         cursor: useRef(null),
@@ -118,79 +117,66 @@ const Timeline: React.FunctionComponent<ITimelineProps> = function({ store }) {
         }, 10);
     }, []);
 
+    let myZoom = 1;
+    if (store.zoomRange && store.zoomedWidth) {
+        myZoom = store.absoluteWidth / store.zoomedWidth;
+    }
+
     return (
-        <Observer>
-            {() => {
-                let myZoom = 1;
-                if (store.zoomRange && store.zoomedWidth) {
-                    myZoom = store.absoluteWidth / store.zoomedWidth;
-                }
+        <div ref={refs.wrapper} className={'tl-timeline-wrapper'}>
+            {store.zoomBounds && (
+                <div className={'tl-timeline-unzoom'}>
+                    <button
+                        className={'btn btn-xs'}
+                        onClick={() => {
+                            store.setZoomBounds();
+                        }}
+                    >
+                        reset zoom
+                    </button>
+                </div>
+            )}
 
-                return (
-                    <div ref={refs.wrapper} className={'tl-timeline-wrapper'}>
-                        {store.hoveredRowIndex !== undefined && (
-                            <style>
-                                {`
-                                    .tl-timeline-tracklabels > div:nth-child(${store.hoveredRowIndex +
-                                        1}) {
-                                            background:#F2F2F2;
-                                        }
-                                    }
-                                    `}
-                            </style>
-                        )}
-
-                        <div className={'tl-timeline-display'}>
-                            <div className={'tl-timeline-leftbar'}>
-                                <div className={'tl-timeline-tracklabels'}>
-                                    {store.data.map((track, i) => {
-                                        return <TrackHeader track={track} />;
-                                    })}
-                                </div>
-                            </div>
-
-                            <div
-                                className={'tl-timelineviewport'}
-                                onMouseDown={e =>
-                                    handleMouseEvents(e, store, refs)
-                                }
-                                onMouseUp={e =>
-                                    handleMouseEvents(e, store, refs)
-                                }
-                                onMouseMove={e =>
-                                    handleMouseEvents(e, store, refs)
-                                }
-                            >
-                                {viewPortWidth > 0 && store.ticks && (
-                                    <div
-                                        className={'tl-timeline'}
-                                        style={{
-                                            width: viewPortWidth * myZoom,
-                                        }}
-                                        id={'tl-timeline'}
-                                        ref={refs.timeline}
-                                    >
-                                        <div
-                                            ref={refs.cursor}
-                                            className={'tl-cursor'}
-                                        ></div>
-                                        <div
-                                            ref={refs.zoomSelectBox}
-                                            className={'tl-zoom-selectbox'}
-                                        ></div>
-
-                                        <TickRow store={store} />
-
-                                        <TimelineTracks store={store} />
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+            <div className={'tl-timeline-display'}>
+                <div className={'tl-timeline-leftbar'}>
+                    <div className={'tl-timeline-tracklabels'}>
+                        {store.data.map((track, i) => {
+                            return <TrackHeader track={track} />;
+                        })}
                     </div>
-                );
-            }}
-        </Observer>
+                </div>
+
+                <div className={'tl-timelineviewport'}>
+                    {viewPortWidth && store.ticks && (
+                        <div
+                            className={'tl-timeline'}
+                            style={{
+                                width: viewPortWidth * myZoom,
+                            }}
+                            id={'tl-timeline'}
+                            ref={refs.timeline}
+                            onMouseDown={e => handleMouseEvents(e, store, refs)}
+                            onMouseUp={e => handleMouseEvents(e, store, refs)}
+                            onMouseMove={e => handleMouseEvents(e, store, refs)}
+                        >
+                            <div
+                                ref={refs.cursor}
+                                className={'tl-cursor'}
+                            ></div>
+                            <div
+                                ref={refs.zoomSelectBox}
+                                className={'tl-zoom-selectbox'}
+                            ></div>
+
+                            <TickRow store={store} />
+
+                            <TimelineTracks store={store} />
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
     );
-};
+});
 
 export default Timeline;

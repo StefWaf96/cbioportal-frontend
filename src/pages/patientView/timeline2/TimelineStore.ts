@@ -29,29 +29,29 @@ export class TimelineStore {
         | { start: number | null; end: number | null }
         | undefined = undefined;
 
-    get viewPortWidth() {
+    @computed get viewPortWidth() {
         const width = $('.tl-timelineviewport').width()!;
         return width;
-        //return 1200;
     }
 
     get timelineWidthInPixels() {
         const width = $('.tl-timeline').width()!;
         return width;
-        //return 1200;
     }
 
-    setZoomBounds(start: number, end: number) {
-        this.zoomBounds = { start, end };
-        setTimeout(this.setScroll.bind(this), 10);
+    setZoomBounds(start?: number, end?: number) {
+        if (start && end) {
+            this.zoomBounds = { start, end };
+            setTimeout(this.setScroll.bind(this), 10);
+        } else {
+            this.zoomBounds = undefined;
+        }
     }
 
     @autobind
     getPosition(item: any, limit: number): EventPosition {
         const start = getPointInTrimmedSpace(item.start, this.ticks);
         const end = getPointInTrimmedSpace(item.end || item.start, this.ticks);
-
-        //let width = ((end - start) / limit) * 100 + "%";
 
         // this shifts them over so that we start at zero instead of negative
         const normalizedStart = start + Math.abs(this.firstTick.start);
@@ -186,7 +186,7 @@ export class TimelineStore {
 
         // @ts-ignore
         const perc =
-            (parseFloat(trimmedPos.left) / 100) * $('#tl-timeline').width();
+            (parseFloat(trimmedPos.left) / 100) * $('#tl-timeline').width()!;
 
         //@ts-ignore
         document.getElementById('tl-timeline')!.parentNode!.scrollLeft = perc;
