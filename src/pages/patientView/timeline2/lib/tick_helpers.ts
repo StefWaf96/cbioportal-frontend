@@ -1,4 +1,4 @@
-import { TimelineEvent, TimelineTick } from '../types';
+import { TickIntervalEnum, TimelineEvent, TimelineTick } from '../types';
 import { intersect } from './intersect';
 import _ from 'lodash';
 
@@ -77,7 +77,6 @@ export function getFullTicks(events: TimelineEvent[], tickInterval: number) {
         ticks.push({
             start,
             end,
-            index: i,
             events: events.filter(e => {
                 return intersect(e.start, e.end, start, end);
             }),
@@ -85,6 +84,24 @@ export function getFullTicks(events: TimelineEvent[], tickInterval: number) {
         place += tickInterval;
         i++;
     } while (place < ceiling);
+
+    const BUFFER = Math.ceil((upperBound - lowerBound) * 0.02);
+
+    let diff = Math.abs(ticks[0].start) - Math.abs(lowerBound);
+
+    if (diff < BUFFER) {
+        // need new tick
+        //console.log('NEED NEW TICK');
+        ticks.unshift({
+            start: ticks[0].start - BUFFER,
+            end: ticks[0].start - 1,
+            events: [],
+        });
+    } else {
+        ticks[0].start = lowerBound - BUFFER;
+    }
+
+    //ticks[ticks.length-1].end = upperBound + BUFFER;
 
     return ticks;
 }
@@ -105,7 +122,8 @@ export function getPointInTrimmedSpace(x: number, regions: TimelineTick[]) {
             return x - (region.offset || 0);
         }
     } else {
-        throw `TIMELINE: FAILED TO FIND REGION CORESPONDING TO POINT ${x}`;
+        return undefined;
+        //throw `TIMELINE: FAILED TO FIND REGION CORESPONDING TO POINT ${x}`;
     }
 }
 

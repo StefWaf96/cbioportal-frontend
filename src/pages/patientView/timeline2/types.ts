@@ -1,12 +1,15 @@
 export interface TimelineEvent {
     start: number;
     end: number;
+    event: any;
+    render(item: TimelineEvent): JSX.Element | string;
 }
 
 export interface TimelineTrack {
     items: TimelineEvent[];
     type: string;
     tracks?: TimelineTrack[];
+    render?: (e: TimelineEvent) => JSX.Element | string;
 }
 
 export interface TimelineTick {
@@ -16,7 +19,6 @@ export interface TimelineTick {
     offset?: number;
     isTrim?: boolean;
     events?: TimelineEvent[];
-    index: number;
 }
 
 enum TickInterval {

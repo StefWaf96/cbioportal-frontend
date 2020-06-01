@@ -114,13 +114,16 @@ export function buildTimeline(
     if (isGenieBpcStudy) {
         // color based on state (need to rename Status to Med Onc Assessment)
         var statusGenieData = _.find(
+            //DONE
             timeData,
             item =>
                 item.label === 'Status' || item.label == 'Med Onc Assessment'
         );
         if (statusGenieData) {
-            statusGenieData.label = 'Med Onc Assessment';
+            //DONE
+            statusGenieData.label = 'Med Onc Assessment'; //DONE
             statusGenieData.times.forEach(time => {
+                //DONE
                 var state = _.find(
                     time.tooltip_tables[0],
                     row => row[0] === 'STATUS'
@@ -144,6 +147,7 @@ export function buildTimeline(
             item => item.label === 'Imaging'
         );
         if (imagingGenieData) {
+            // CONDITION IS DONE
             imagingGenieData.times.forEach(time => {
                 var imageOverall = _.find(
                     time.tooltip_tables[0],
@@ -304,6 +308,7 @@ export function buildTimeline(
             'RESULT'
         );
     });
+
     if (isGenieBpcStudy) {
         window.pvTimeline = window.pvTimeline
             .orderTracks([

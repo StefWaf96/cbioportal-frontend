@@ -8,19 +8,25 @@ interface ITrackHeaderProps {
 
 const TrackHeader: React.FunctionComponent<ITrackHeaderProps> = function({
     track,
-    level = 0,
+    level = 5,
 }) {
     if (track.tracks) {
         return (
             <>
-                <div style={{ paddingLeft: level }}>{track.type}</div>
+                <div style={{ paddingLeft: level }}>
+                    {track.type.toLowerCase().replace(/_/g, '')}
+                </div>
                 {track.tracks.map(track => (
-                    <TrackHeader level={level + 20} track={track} />
+                    <TrackHeader level={level + 17} track={track} />
                 ))}
             </>
         );
     } else {
-        return <div style={{ paddingLeft: level }}>{track.type}</div>;
+        return (
+            <div style={{ paddingLeft: level }}>
+                {track.type.toLowerCase().replace(/_/g, '')}
+            </div>
+        );
     }
 };
 

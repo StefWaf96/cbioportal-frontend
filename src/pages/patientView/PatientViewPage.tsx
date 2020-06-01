@@ -886,9 +886,18 @@ export default class PatientViewPage extends React.Component<
                                                     style={{
                                                         marginTop: 20,
                                                         marginBottom: 40,
+                                                        minHeight: 300,
                                                     }}
                                                 >
                                                     <Timeline2
+                                                        caseMetaData={{
+                                                            color:
+                                                                sampleManager.sampleColors,
+                                                            label:
+                                                                sampleManager.sampleLabels,
+                                                            index:
+                                                                sampleManager.sampleIndex,
+                                                        }}
                                                         data={
                                                             this
                                                                 .patientViewPageStore

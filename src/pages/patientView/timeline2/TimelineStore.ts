@@ -1,4 +1,9 @@
-import { EventPosition, TickIntervalEnum, TimelineTrack } from './types';
+import {
+    EventPosition,
+    TickIntervalEnum,
+    TimelineEvent,
+    TimelineTrack,
+} from './types';
 import { computed, observable } from 'mobx';
 import {
     getFullTicks,
@@ -20,7 +25,8 @@ export class TimelineStore {
     }
 
     @computed get tickInterval() {
-        return Math.abs(this.firstTick.end - this.firstTick.start + 1);
+        return TickIntervalEnum.YEAR;
+        //return Math.abs(this.firstTick.end - this.firstTick.start + 1);
     }
 
     @observable.ref zoomBounds: { start: number; end: number } | undefined;
@@ -34,28 +40,27 @@ export class TimelineStore {
         return width;
     }
 
-    get timelineWidthInPixels() {
-        const width = $('.tl-timeline').width()!;
-        return width;
-    }
-
     setZoomBounds(start?: number, end?: number) {
         if (start && end) {
             this.zoomBounds = { start, end };
-            setTimeout(this.setScroll.bind(this), 10);
         } else {
             this.zoomBounds = undefined;
         }
+        setTimeout(this.setScroll.bind(this), 10);
     }
 
     @autobind
-    getPosition(item: any, limit: number): EventPosition {
+    getPosition(item: any, limit: number): EventPosition | undefined {
         const start = getPointInTrimmedSpace(item.start, this.ticks);
         const end = getPointInTrimmedSpace(item.end || item.start, this.ticks);
 
+        if (start === undefined || end === undefined) {
+            return undefined;
+        }
+
         // this shifts them over so that we start at zero instead of negative
-        const normalizedStart = start + Math.abs(this.firstTick.start);
-        const normalizedEnd = end + Math.abs(this.firstTick.start);
+        const normalizedStart = start - this.firstTick.start;
+        const normalizedEnd = end - this.firstTick.start;
 
         let width =
             getPerc(normalizedEnd, this.absoluteWidth) -
@@ -78,9 +83,9 @@ export class TimelineStore {
     @observable.ref data: TimelineTrack[];
 
     @computed get allItems() {
-        function getItems(track: TimelineTrack) {
+        function getItems(track: TimelineTrack): TimelineEvent[] {
             if (track.tracks && track.tracks.length > 0) {
-                return track.tracks.map(t => t.items);
+                return _.flatten(track.tracks.map(t => getItems(t)));
             } else {
                 return track.items;
             }
@@ -92,33 +97,9 @@ export class TimelineStore {
     }
 
     @computed get ticks() {
-        // we need to figure out based on the actual time we need to dislay (not zoomed)
-        // what our ticks should be
-        // so first determine ticks with weeks
-        // if we get too many ticks to fit nicely in the viewport
-        // then go to years
-        // if we get too few, meaning, it's only a few months, then go to a year
+        const fullTicks = getFullTicks(this.allItems, TickIntervalEnum.YEAR);
 
-        // if we are zoomed, then get a bigger portal to play with, so calculation when zoomed
-        // should be different
-
-        let trimmedTicks;
-
-        const fullTicks = getFullTicks(this.allItems, TickIntervalEnum.MONTH);
-
-        trimmedTicks = getTrimmedTicks(fullTicks);
-
-        const tickWidth = this.viewPortWidth / trimmedTicks.length;
-
-        if (true || tickWidth < 100) {
-            const fullTicks = getFullTicks(
-                this.allItems,
-                TickIntervalEnum.YEAR
-            );
-            trimmedTicks = getTrimmedTicks(fullTicks);
-        }
-
-        return trimmedTicks;
+        return getTrimmedTicks(fullTicks);
     }
 
     @computed get lastTick() {
@@ -132,7 +113,7 @@ export class TimelineStore {
     @computed get absoluteWidth() {
         const start = this.firstTick.start + Math.abs(this.firstTick.start);
         const end =
-            getPointInTrimmedSpace(this.lastTick.end, this.ticks) +
+            getPointInTrimmedSpace(this.lastTick.end, this.ticks)! +
             Math.abs(this.firstTick.start);
         return end - start;
     }
@@ -159,14 +140,9 @@ export class TimelineStore {
                 start: getPointInTrimmedSpace(
                     this.zoomBounds.start,
                     this.ticks
-                ),
-                end: getPointInTrimmedSpace(this.zoomBounds.end, this.ticks),
+                )!,
+                end: getPointInTrimmedSpace(this.zoomBounds.end, this.ticks)!,
             };
-
-            // return {
-            //     start: this.zoomBounds.start,
-            //     end: this.zoomBounds.end
-            // }
         } else {
             return undefined;
         }
@@ -179,14 +155,21 @@ export class TimelineStore {
     @observable hoveredRowIndex: number | undefined;
 
     setScroll() {
-        const trimmedPos = this.getPosition(
-            { start: this.zoomBounds!.start, end: this.zoomBounds!.end },
-            this.absoluteWidth
-        );
+        let perc = 0;
 
-        // @ts-ignore
-        const perc =
-            (parseFloat(trimmedPos.left) / 100) * $('#tl-timeline').width()!;
+        if (this.zoomBounds) {
+            const trimmedPos = this.getPosition(
+                { start: this.zoomBounds!.start, end: this.zoomBounds!.end },
+                this.absoluteWidth
+            );
+
+            if (trimmedPos) {
+                // @ts-ignore
+                perc =
+                    (parseFloat(trimmedPos.left) / 100) *
+                    $('#tl-timeline').width()!;
+            }
+        }
 
         //@ts-ignore
         document.getElementById('tl-timeline')!.parentNode!.scrollLeft = perc;

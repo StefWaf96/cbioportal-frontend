@@ -8,6 +8,7 @@ import { getPointInTrimmedSpaceFromScreenRead } from './lib/tick_helpers';
 import intersect from './lib/intersect';
 import TrackHeader from './TrackHeader';
 import TickRow from './TickRow';
+import { TickIntervalEnum } from 'pages/patientView/timeline2/types';
 
 (window as any).$ = $;
 
@@ -32,28 +33,44 @@ const getFocusedPoints = _.debounce(function(
 function handleMouseEvents(e: any, store: TimelineStore, refs: any) {
     const $timeline = $(refs.timeline.current);
     const $zoomSelectBox = $(refs.zoomSelectBox.current);
+    const $zoomSelectBoxMask = $(refs.zoomSelectBoxMask.current);
 
     switch (e.type) {
+        case 'mouseleave':
+            $(refs.cursor.current).hide();
+            break;
+
         case 'mouseup':
             if (store.dragging) {
-                const width = $timeline.width()!;
-                const percStart = store.dragging.start! / width;
-                const percEnd = store.dragging.end! / width;
-                const startVal = percStart * store.absoluteWidth;
-                const endVal = percEnd * store.absoluteWidth;
-                const myStart = getPointInTrimmedSpaceFromScreenRead(
-                    startVal,
-                    store.ticks
-                );
-                const myEnd = getPointInTrimmedSpaceFromScreenRead(
-                    endVal,
-                    store.ticks
-                );
+                if (
+                    !!store.dragging.start &&
+                    !!store.dragging.end &&
+                    Math.abs(store.dragging.start! - store.dragging.end!) > 10
+                ) {
+                    const width = $timeline.width()!;
+                    const percStart = store.dragging.start! / width;
+                    const percEnd = store.dragging.end! / width;
+                    const startVal = percStart * store.absoluteWidth;
+                    const endVal = percEnd * store.absoluteWidth;
+                    const myStart = getPointInTrimmedSpaceFromScreenRead(
+                        startVal,
+                        store.ticks
+                    );
+                    const myEnd = getPointInTrimmedSpaceFromScreenRead(
+                        endVal,
+                        store.ticks
+                    );
 
-                store.setZoomBounds(myStart, myEnd);
+                    if (myStart <= myEnd) {
+                        store.setZoomBounds(myStart, myEnd);
+                    } else {
+                        store.setZoomBounds(myEnd, myStart);
+                    }
+                }
 
                 store.dragging = undefined;
 
+                $zoomSelectBoxMask.hide();
                 $zoomSelectBox.hide();
             }
 
@@ -72,6 +89,7 @@ function handleMouseEvents(e: any, store: TimelineStore, refs: any) {
                 }
                 store.dragging.end = pos;
 
+                $zoomSelectBoxMask.show();
                 $zoomSelectBox.show().css({
                     left:
                         store.dragging.start < store.dragging.end
@@ -80,14 +98,38 @@ function handleMouseEvents(e: any, store: TimelineStore, refs: any) {
                     width: Math.abs(store.dragging.end - store.dragging.start),
                 });
             } else {
-                const point = (pos / $timeline.width()!) * store.absoluteWidth;
+                //const point = (pos / $timeline.width()!) * store.absoluteWidth;
 
-                getFocusedPoints(point, store);
+                const width = $timeline.width()!;
+                const percStart = pos / width;
+                const startVal = percStart * store.absoluteWidth;
+                const myStart = getPointInTrimmedSpaceFromScreenRead(
+                    startVal,
+                    store.ticks
+                );
+
+                //getFocusedPoints(point, store);
+
+                console.log(myStart);
+
+                const years = Math.floor(myStart / 365);
+                const months = Math.floor((myStart - years * 365) / 30.416);
+                const days = Math.floor(
+                    myStart - (years * 365 + months * 30.416)
+                );
+
+                const yearText = years > 0 ? `${years}y` : '';
+                const monthText = months > 0 ? ` ${months}m` : '';
+                const dayText = days > 0 ? ` ${days}d` : '';
+
+                const label = `${yearText}${monthText}${dayText}`;
 
                 $(refs.cursor.current).css({
                     left: e.clientX - $timeline.offset()!.left,
                     display: 'block',
                 });
+
+                $(refs.cursorText.current).html(label);
             }
             break;
     }
@@ -100,13 +142,13 @@ const Timeline: React.FunctionComponent<ITimelineProps> = observer(function({
 
     const [zoomBound, setZoomBound] = useState<string | null>(null);
 
-    console.log('rending timeline');
-
     const refs = {
         cursor: useRef(null),
         wrapper: useRef(null),
         timeline: useRef(null),
         zoomSelectBox: useRef(null),
+        zoomSelectBoxMask: useRef(null),
+        cursorText: useRef(null),
     };
 
     // on mount, there will be no element to measure, so we need to do this on equivalent
@@ -158,10 +200,16 @@ const Timeline: React.FunctionComponent<ITimelineProps> = observer(function({
                             onMouseDown={e => handleMouseEvents(e, store, refs)}
                             onMouseUp={e => handleMouseEvents(e, store, refs)}
                             onMouseMove={e => handleMouseEvents(e, store, refs)}
+                            onMouseLeave={e =>
+                                handleMouseEvents(e, store, refs)
+                            }
                         >
+                            <div ref={refs.cursor} className={'tl-cursor'}>
+                                <div ref={refs.cursorText}></div>
+                            </div>
                             <div
-                                ref={refs.cursor}
-                                className={'tl-cursor'}
+                                ref={refs.zoomSelectBoxMask}
+                                className={'tl-zoom-selectbox-mask'}
                             ></div>
                             <div
                                 ref={refs.zoomSelectBox}

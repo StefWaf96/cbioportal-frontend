@@ -21,7 +21,7 @@ export const TimelineTracks: React.FunctionComponent<
                     el => el === e.currentTarget
                 );
                 if (rowIndex !== undefined) {
-                    $('#tl-row-hover').text(`
+                    $('.tl-row-hover').text(`
                         .tl-timeline-tracklabels > div:nth-child(${rowIndex +
                             1}) {
                                 background:#F2F2F2;
@@ -31,14 +31,14 @@ export const TimelineTracks: React.FunctionComponent<
                 }
                 break;
             default:
-                $('#tl-row-hover').empty();
+                $('.tl-row-hover').empty();
                 break;
         }
     };
 
     return (
         <>
-            <style id={'tl-row-hover'}></style>
+            <style className={'tl-row-hover'}></style>
             <div className={'tl-rowGroup'}>
                 {store.data.map((row, i) => {
                     return (
