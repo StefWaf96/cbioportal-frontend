@@ -121,12 +121,12 @@ const TickRow: React.FunctionComponent<ITickRowProps> = observer(function({
 
                             let minorLabel = '';
                             let showLabel = false;
-                            if (store.tickPixelWidth > 300) {
+                            if (store.tickPixelWidth > 150) {
                                 if (i % 4 === 0) {
                                     // only odd
                                     showLabel = true;
                                 }
-                                if (store.tickPixelWidth > 500) {
+                                if (store.tickPixelWidth > 700) {
                                     showLabel = true;
                                 }
                             }
