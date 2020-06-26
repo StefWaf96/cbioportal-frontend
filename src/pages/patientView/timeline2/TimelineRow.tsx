@@ -143,7 +143,7 @@ export const TimelineRow: React.FunctionComponent<
                                                 }
                                             )}
                                             <tr>
-                                                <th>STARTE DATE:</th>
+                                                <th>START DATE:</th>
                                                 <td>
                                                     {
                                                         item.event
