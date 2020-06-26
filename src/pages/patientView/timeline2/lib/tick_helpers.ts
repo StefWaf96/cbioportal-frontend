@@ -85,13 +85,12 @@ export function getFullTicks(events: TimelineEvent[], tickInterval: number) {
         i++;
     } while (place < ceiling);
 
-    const BUFFER = Math.ceil((upperBound - lowerBound) * 0.02);
+    const BUFFER = 20; // Math.ceil((upperBound - lowerBound) * 0.02);
 
     let diff = Math.abs(ticks[0].start) - Math.abs(lowerBound);
 
     if (diff < BUFFER) {
         // need new tick
-        //console.log('NEED NEW TICK');
         ticks.unshift({
             start: ticks[0].start - BUFFER,
             end: ticks[0].start - 1,
@@ -101,7 +100,7 @@ export function getFullTicks(events: TimelineEvent[], tickInterval: number) {
         ticks[0].start = lowerBound - BUFFER;
     }
 
-    //ticks[ticks.length-1].end = upperBound + BUFFER;
+    ticks[ticks.length - 1].end = upperBound + BUFFER;
 
     return ticks;
 }

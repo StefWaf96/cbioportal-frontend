@@ -110,8 +110,6 @@ function handleMouseEvents(e: any, store: TimelineStore, refs: any) {
 
                 //getFocusedPoints(point, store);
 
-                console.log(myStart);
-
                 const years = Math.floor(myStart / 365);
                 const months = Math.floor((myStart - years * 365) / 30.416);
                 const days = Math.floor(
