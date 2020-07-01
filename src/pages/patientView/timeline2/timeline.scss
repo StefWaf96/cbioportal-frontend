@@ -57,6 +57,7 @@ $rowHeight: 20px;
             text-align: center;
             opacity: 1;
             border-radius: $border-radius-base;
+            display: none;
         }
     }
 
@@ -168,6 +169,12 @@ $rowHeight: 20px;
             //&:first-child {
             //    display: none;
             //}
+        }
+
+        .tl-daytick {
+            .tl-tickline {
+                background-color: orange;
+            }
         }
 
         //> :first-child {

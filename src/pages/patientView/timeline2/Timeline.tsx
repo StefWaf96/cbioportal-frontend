@@ -110,10 +110,15 @@ function handleMouseEvents(e: any, store: TimelineStore, refs: any) {
 
                 //getFocusedPoints(point, store);
 
-                const years = Math.floor(myStart / 365);
-                const months = Math.floor((myStart - years * 365) / 30.416);
+                const years = Math.floor(myStart / TickIntervalEnum.YEAR);
+                const months = Math.floor(
+                    (myStart - years * TickIntervalEnum.YEAR) /
+                        TickIntervalEnum.MONTH
+                );
                 const days = Math.floor(
-                    myStart - (years * 365 + months * 30.416)
+                    myStart -
+                        (years * TickIntervalEnum.YEAR +
+                            months * TickIntervalEnum.MONTH)
                 );
 
                 const yearText = years > 0 ? `${years}y` : '';
@@ -127,7 +132,7 @@ function handleMouseEvents(e: any, store: TimelineStore, refs: any) {
                     display: 'block',
                 });
 
-                $(refs.cursorText.current).html(label);
+                //$(refs.cursorText.current).html(label);
             }
             break;
     }

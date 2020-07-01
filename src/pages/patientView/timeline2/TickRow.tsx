@@ -20,7 +20,6 @@ const TickRow: React.FunctionComponent<ITickRowProps> = observer(function({
 
                 const minorTicks: JSX.Element[] = [];
 
-                //const tickWidth = Math.abs(tick.end - tick.start);
                 let startPoint;
 
                 if (tick === store.firstTick) {
@@ -103,7 +102,7 @@ const TickRow: React.FunctionComponent<ITickRowProps> = observer(function({
                     );
 
                     if (store.tickPixelWidth > 150) {
-                        const minorTickWidth = 30.416;
+                        const minorTickWidth = TickIntervalEnum.MONTH;
 
                         for (let i = 1; i < 12; i++) {
                             let minorStyle = undefined;
@@ -165,6 +164,28 @@ const TickRow: React.FunctionComponent<ITickRowProps> = observer(function({
                         }
                     }
                 }
+
+                // if (store.tickPixelWidth > 2000) {
+                //     const dayTickWidth = TickIntervalEnum.MONTH/30;
+                //     for (let i = 0; i <= 365; i++) {
+                //
+                //         if (i % 30 !== 0) {
+                //             const position = majorTickPosition && store.getPosition(
+                //                 {start: startPoint + dayTickWidth * i},
+                //                 store.trimmedLimit
+                //             );
+                //             if (position) {
+                //                 minorTicks.push(
+                //                     <div className={'tl-daytick'} style={{left: position.left}}>
+                //                         <div className={'tl-tickline'}></div>
+                //                     </div>
+                //                 )
+                //             }
+                //         }
+                //     }
+                //
+                //
+                // }
 
                 return (
                     <>

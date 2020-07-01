@@ -21,19 +21,13 @@ export interface TimelineTick {
     events?: TimelineEvent[];
 }
 
-enum TickInterval {
-    MONTH = 30,
-    YEAR = 365,
-    WEEK = 7,
-}
-
 export interface EventPosition {
     left: string;
     width: string;
 }
 
 export enum TickIntervalEnum {
-    MONTH = 30,
+    MONTH = 30.41666,
     YEAR = 365,
     DAY = 1,
 }
