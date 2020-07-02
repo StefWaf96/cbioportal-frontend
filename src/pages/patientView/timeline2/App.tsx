@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import './App.css';
-import './timeline.scss';
 import _ from 'lodash';
 import $ from 'jquery';
 import { Observer, observer } from 'mobx-react-lite';
 
-import { TimelineTrack } from './types';
+import 'cbioportal-clinical-timeline/dist/styles.css';
 
-import { TimelineStore } from './TimelineStore';
+import {
+    TimelineTrack,
+    TimelineStore,
+    Timeline,
+} from 'cbioportal-clinical-timeline';
 
-import Timeline from './Timeline';
 import { ClinicalAttribute, ClinicalEvent } from 'cbioportal-ts-api-client';
-import configureTracks from 'pages/patientView/timeline2/configureCats';
-import { getAttributeValue } from 'pages/patientView/timeline2/lib/helpers';
+import { configureTracks } from 'cbioportal-clinical-timeline';
+import { getAttributeValue } from 'cbioportal-clinical-timeline';
 
 function getData(eventData: any) {
     return _.groupBy(eventData, (e: any) => e.eventType.toUpperCase());
