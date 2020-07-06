@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-    TimelineEvent,
-    TimelineTrack,
-} from 'pages/patientView/timeline2/types';
+import { TimelineEvent, TimelineTrack } from './types';
 import _ from 'lodash';
 
 export type ITrackEventConfig = {
@@ -10,7 +7,7 @@ export type ITrackEventConfig = {
     configureTrack: (track: TimelineTrack) => any;
 };
 
-const configureTracks = function(
+export const configureTracks = function(
     tracks: TimelineTrack[],
     trackConfigs: ITrackEventConfig[]
 ) {
@@ -28,5 +25,3 @@ const configureTracks = function(
         }
     });
 };
-
-export default configureTracks;

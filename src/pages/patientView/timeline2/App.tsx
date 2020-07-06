@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import _ from 'lodash';
-import $ from 'jquery';
-import { Observer, observer } from 'mobx-react-lite';
+import { observer } from 'mobx-react-lite';
 
 import 'cbioportal-clinical-timeline/dist/styles.css';
 
@@ -11,7 +10,7 @@ import {
     Timeline,
 } from 'cbioportal-clinical-timeline';
 
-import { ClinicalAttribute, ClinicalEvent } from 'cbioportal-ts-api-client';
+import { ClinicalEvent } from 'cbioportal-ts-api-client';
 import { configureTracks } from 'cbioportal-clinical-timeline';
 import { getAttributeValue } from 'cbioportal-clinical-timeline';
 

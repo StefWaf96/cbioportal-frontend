@@ -1,3 +1,14 @@
+import { TimelineEvent } from '../types';
+import _ from 'lodash';
+
+export function getAttributeValue(name: string, event: TimelineEvent) {
+    const att = _.at(event as any, ['event.attributes']);
+    const attObj = att[0]
+        ? att[0].find((a: any) => a.key === 'RESULT')
+        : undefined;
+    return attObj ? attObj.value : undefined;
+}
+
 import { TickIntervalEnum, TimelineEvent, TimelineTick } from '../types';
 import { intersect } from './intersect';
 import _ from 'lodash';
@@ -109,6 +120,8 @@ export function getPerc(n: number, l: number) {
     return (n / l) * 100;
 }
 
+// this function accpts a raw point and adjust it according to the offsets of trimmed regions that proceed it
+// this gives us a point on the timeline minus empty areas (trims) excised to avoid white space
 export function getPointInTrimmedSpace(x: number, regions: TimelineTick[]) {
     const region = _.find(regions, r => {
         return r.start <= x && (r.end >= x || r.realEnd! >= x);
@@ -116,13 +129,13 @@ export function getPointInTrimmedSpace(x: number, regions: TimelineTick[]) {
 
     if (region) {
         if (region.isTrim) {
+            // this point is in a trimmed region so just return the start of the trimmed region (adjusted for offset)
             return region.start - (region.offset || 0);
         } else {
             return x - (region.offset || 0);
         }
     } else {
         return undefined;
-        //throw `TIMELINE: FAILED TO FIND REGION CORESPONDING TO POINT ${x}`;
     }
 }
 
@@ -136,10 +149,13 @@ export function getPointInTrimmedSpaceFromScreenRead(
         if (!tick.isTrim) {
             if (rem >= tick.end - tick.start) {
                 rem = rem - (tick.end - tick.start);
+                return true;
             } else {
                 result = tick.start + rem;
                 return false;
             }
+        } else {
+            return true;
         }
     });
     return result;

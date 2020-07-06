@@ -10,7 +10,7 @@ import {
     getPerc,
     getPointInTrimmedSpace,
     getTrimmedTicks,
-} from './lib/tick_helpers';
+} from './lib/helpers';
 import _ from 'lodash';
 import $ from 'jquery';
 import autobind from 'autobind-decorator';

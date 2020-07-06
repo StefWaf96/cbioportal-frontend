@@ -4,11 +4,12 @@ import TimelineTracks from './TimelineTracks';
 import { TimelineStore } from './TimelineStore';
 import _ from 'lodash';
 import $ from 'jquery';
-import { getPointInTrimmedSpaceFromScreenRead } from './lib/tick_helpers';
+import { getPointInTrimmedSpaceFromScreenRead } from './lib/helpers';
 import intersect from './lib/intersect';
 import TrackHeader from './TrackHeader';
 import TickRow from './TickRow';
-import { TickIntervalEnum } from 'pages/patientView/timeline2/types';
+import { TickIntervalEnum } from './types';
+import './timeline.scss';
 
 (window as any).$ = $;
 
