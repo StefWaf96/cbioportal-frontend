@@ -28,6 +28,11 @@ import {
     GenomicDataBinFilter,
     GenomicDataFilter,
     GenomicDataBin,
+    AndedPatientTreatmentFilters,
+    AndedSampleTreatmentFilters,
+    OredPatientTreatmentFilters,
+    OredSampleTreatmentFilters,
+    SampleTreatmentFilter,
 } from 'cbioportal-ts-api-client';
 import {
     CancerStudy,
@@ -105,7 +110,7 @@ import {
     convertGenomicDataBinsToClinicalDataBins,
     getGenomicChartUniqueKey,
 } from './StudyViewUtils';
-import MobxPromise from 'mobxpromise';
+import MobxPromise, { MobxPromiseUnionType } from 'mobxpromise';
 import { SingleGeneQuery } from 'shared/lib/oql/oql-parser';
 import autobind from 'autobind-decorator';
 import { updateGeneQuery } from 'pages/studyView/StudyViewUtils';
@@ -171,6 +176,7 @@ import {
     getSurvivalStatusBoolean,
 } from 'pages/resultsView/survival/SurvivalUtil';
 import { ISurvivalDescription } from 'pages/resultsView/survival/SurvivalDescriptionTable';
+import { toSampleTreatmentFilter, toPatientTreatmentFilter, sampleTreatmentUniqueKey, patientTreatmentUniqueKey } from './table/treatments/treatmentsTableUtil';
 import StudyViewURLWrapper from './StudyViewURLWrapper';
 import { isMixedReferenceGenome } from 'shared/lib/referenceGenomeUtils';
 import { Datalabel } from 'shared/lib/DataUtils';
@@ -990,6 +996,8 @@ export class StudyViewPageStore {
             this.setGenomicProfilesFilter(filters.genomicProfiles);
         }
 
+        this.setBothFilters(filters);
+
         if (filters.caseLists !== undefined) {
             this.setCaseListsFilter(filters.caseLists);
         }
@@ -1009,6 +1017,8 @@ export class StudyViewPageStore {
                 );
             });
         }
+
+        // TODO: update filters
 
         if (!_.isEqual(toJS(this.initialFiltersQuery), filters)) {
             this.initialFiltersQuery = filters;
@@ -1044,7 +1054,9 @@ export class StudyViewPageStore {
                     decodeURIComponent(query.filters)
                 ) as Partial<StudyViewFilter>;
                 this.updateStoreByFilters(filters);
-            } catch (e) {}
+            } catch (e) {
+                //  TODO: add some logging here?
+            }
         } else if (query.filterAttributeId && query.filterValues) {
             const clinicalAttributes = _.uniqBy(
                 await defaultClient.fetchClinicalAttributesUsingPOST({
@@ -1114,6 +1126,9 @@ export class StudyViewPageStore {
         if (!_.isEmpty(studyViewFilter.sampleIdentifiers)) {
             delete studyViewFilter.studyIds;
         }
+
+        studyViewFilter.patientTreatmentFilters = { filters: [] };
+        studyViewFilter.sampleTreatmentFilters = { filters: [] };
 
         return studyViewFilter;
     }
@@ -1357,6 +1372,8 @@ export class StudyViewPageStore {
         this._customBinsFromScatterPlotSelectionSet.clear();
         this.setGenomicProfilesFilter([]);
         this.setCaseListsFilter([]);
+        this.clearPatientTreatmentFilters();
+        this.clearSampleTreatmentFilters();
     }
 
     @computed
@@ -1807,6 +1824,12 @@ export class StudyViewPageStore {
                     break;
                 case ChartTypeEnum.SURVIVAL:
                     break;
+                // case ChartTypeEnum.TREATMENTS_TABLE:
+                //     if (chartUniqueKey === "TODO") {
+                //         this.treatments.clearPatientTreatmentFilters();
+                //     } else {
+                //         this.treatments.clearSampleTreatmentFilters();
+                //     }
                 default:
                     this._clinicalDataFilterSet.delete(chartUniqueKey);
                     this._chartSampleIdentifiersFilterSet.delete(
@@ -2021,6 +2044,20 @@ export class StudyViewPageStore {
 
         if (this.caseListsFilter.length > 0) {
             filters.caseLists = toJS(this.caseListsFilter);
+        }
+
+        if (
+            this.sampleTreatmentFilters &&
+            this.sampleTreatmentFilters.filters.length > 0
+        ) {
+            filters.sampleTreatmentFilters = this.sampleTreatmentFilters;
+        }
+
+        if (
+            this.patientTreatmentFilters &&
+            this.patientTreatmentFilters.filters.length > 0
+        ) {
+            filters.patientTreatmentFilters = this.patientTreatmentFilters;
         }
 
         let sampleIdentifiersFilterSets = this._chartSampleIdentifiersFilterSet.values();
@@ -3374,6 +3411,34 @@ export class StudyViewPageStore {
             _chartMetaSet
         );
 
+        if (!_.isEmpty(this.sampleTreatments.result)) {
+            _chartMetaSet["SAMPLE_TREATMENTS"] = {
+                uniqueKey: "SAMPLE_TREATMENTS",
+                dataType: ChartMetaDataTypeEnum.CLINICAL,
+                patientAttribute: true,
+                displayName: 'Sample Treatments',
+                priority: getDefaultPriorityByUniqueKey(
+                    ChartTypeEnum.SAMPLE_TREATMENTS_TABLE
+                ),
+                renderWhenDataChange: true,
+                description: '',
+            }
+        }
+
+        if (!_.isEmpty(this.patientTreatments.result)) {
+            _chartMetaSet["PATIENT_TREATMENTS"] = {
+                uniqueKey: "PATIENT_TREATMENTS",
+                dataType: ChartMetaDataTypeEnum.CLINICAL,
+                patientAttribute: true,
+                displayName: 'Patient Treatments',
+                priority: getDefaultPriorityByUniqueKey(
+                    ChartTypeEnum.SAMPLE_TREATMENTS_TABLE
+                ),
+                renderWhenDataChange: true,
+                description: '',
+            }
+        }
+
         if (!_.isEmpty(this.mutationProfiles.result)) {
             const uniqueKey = getUniqueKeyFromMolecularProfileIds(
                 this.mutationProfiles.result.map(
@@ -3499,6 +3564,7 @@ export class StudyViewPageStore {
 
     @computed
     get visibleAttributes(): ChartMeta[] {
+        console.log("vs", this._chartVisibility.keys());
         return _.reduce(
             this._chartVisibility.entries(),
             (acc, [chartUniqueKey, visible]) => {
@@ -3552,7 +3618,9 @@ export class StudyViewPageStore {
             this.mutationProfiles.isPending ||
             this.cnaProfiles.isPending ||
             this.structuralVariantProfiles.isPending ||
-            this.survivalClinicalAttributesPrefix.isPending;
+            this.survivalClinicalAttributesPrefix.isPending ||
+            this.patientTreatments.isPending ||
+            this.sampleTreatments.isPending;
 
         if (
             this.clinicalAttributes.isComplete &&
@@ -3839,6 +3907,20 @@ export class StudyViewPageStore {
             }
         }
 
+        if (!_.isEmpty(this.patientTreatments.result)) {
+            this.chartsType.set(
+                SpecialChartsUniqueKeyEnum.PATIENT_TREATMENTS,
+                ChartTypeEnum.PATIENT_TREATMENTS_TABLE
+            );
+        }
+
+        if (!_.isEmpty(this.sampleTreatments.result)) {
+            this.chartsType.set(
+                SpecialChartsUniqueKeyEnum.SAMPLE_TREATMENTS,
+                ChartTypeEnum.SAMPLE_TREATMENTS_TABLE
+            );
+        }
+
         if (!_.isEmpty(this.mutationProfiles.result)) {
             const uniqueKey = getUniqueKeyFromMolecularProfileIds(
                 this.mutationProfiles.result.map(
@@ -3980,6 +4062,14 @@ export class StudyViewPageStore {
             SpecialChartsUniqueKeyEnum.MUTATION_COUNT_CNA_FRACTION,
             STUDY_VIEW_CONFIG.layout.dimensions[ChartTypeEnum.SCATTER]
         );
+        this.chartsDimension.set(
+            SpecialChartsUniqueKeyEnum.SAMPLE_TREATMENTS,
+            STUDY_VIEW_CONFIG.layout.dimensions[ChartTypeEnum.SAMPLE_TREATMENTS_TABLE]
+        )
+        this.chartsDimension.set(
+            SpecialChartsUniqueKeyEnum.PATIENT_TREATMENTS,
+            STUDY_VIEW_CONFIG.layout.dimensions[ChartTypeEnum.SAMPLE_TREATMENTS_TABLE]
+        )
         if (
             mutationCountFlag &&
             fractionGenomeAlteredFlag &&
@@ -4422,6 +4512,8 @@ export class StudyViewPageStore {
     >({
         await: () => [this.selectedSamples],
         invoke: () => {
+            console.log("redoing sampleViewFilterWithFilteredSampleIdentifiers");
+
             const sampleIdentifiers = this.selectedSamples.result.map(
                 sample => {
                     return {
@@ -4434,6 +4526,7 @@ export class StudyViewPageStore {
         },
         onError: error => {},
     });
+
 
     @computed
     get selectedSamplesMap() {
@@ -5565,6 +5658,8 @@ export class StudyViewPageStore {
             this.clinicalAttributesCounts,
             this.mutationCountVsFractionGenomeAlteredDataSet,
             this.molecularProfileOptions,
+            this.sampleTreatments,
+            this.patientTreatments
         ],
         invoke: async () => {
             if (!_.isEmpty(this.chartMetaSet)) {
@@ -5620,6 +5715,13 @@ export class StudyViewPageStore {
                                 ] || []
                             ).length
                     );
+                }
+
+                if (!_.isEmpty(this.sampleTreatments.result)) {
+                    ret["SAMPLE_TREATMENTS"] = 1;
+                }
+                if (!_.isEmpty(this.patientTreatments.result)) {
+                    ret["PATIENT_TREATMENTS"] = 1;
                 }
 
                 if (!_.isEmpty(this.structuralVariantProfiles.result)) {
@@ -6241,5 +6343,159 @@ export class StudyViewPageStore {
         if (this.queriedPhysicalStudies.result) {
             return isMixedReferenceGenome(this.queriedPhysicalStudies.result);
         }
+    }
+
+    @observable
+    private _pTreatmentsFilter: AndedPatientTreatmentFilters = { filters: [] };
+
+    @observable
+    private _sTreatmentsFilters: AndedSampleTreatmentFilters = { filters: [] };
+
+    @computed
+    public get patientTreatmentFilters(): AndedPatientTreatmentFilters {
+        return this._pTreatmentsFilter;
+    }
+
+    @computed
+    public get sampleTreatmentFilters(): AndedSampleTreatmentFilters {
+        return this._sTreatmentsFilters;
+    }
+
+    @computed
+    get sampleTreatmentFiltersAsStrings(): string[][] {
+        return this.sampleTreatmentFilters.filters.map(outer => {
+            return outer.filters.map(sampleTreatmentUniqueKey)
+        })
+    }
+
+    @computed
+    get patientTreatmentFiltersAsStrings(): string[][] {
+        return this.patientTreatmentFilters.filters.map(outer => {
+            return outer.filters.map(patientTreatmentUniqueKey)
+        })
+    }
+
+    @action
+    public clearPatientTreatmentFilters() {
+        this._pTreatmentsFilter = { filters: [] };
+    }
+
+    @action
+    public setPatientTreatmentFilters(filters: AndedPatientTreatmentFilters) {
+        this._pTreatmentsFilter = filters;
+    }
+
+    @action
+    public addPatientTreatmentFilters(filters: OredPatientTreatmentFilters[]) {
+        this._pTreatmentsFilter.filters = this._pTreatmentsFilter.filters.concat(
+            filters
+        );
+    }
+
+    @action
+    public clearSampleTreatmentFilters() {
+        this._sTreatmentsFilters = { filters: [] };
+    }
+
+    @action
+    public setSampleTreatmentFilters(filters: AndedSampleTreatmentFilters) {
+        this._sTreatmentsFilters = filters;
+    }
+
+    @action
+    public addSampleTreatmentFilters(filters: OredSampleTreatmentFilters[]) {
+        this._sTreatmentsFilters.filters = this._sTreatmentsFilters.filters.concat(
+            filters
+        );
+    }
+
+    @action
+    public setBothFilters(filters: Partial<StudyViewFilter>) {
+        if (
+            filters.patientTreatmentFilters &&
+            _.isArray(filters.patientTreatmentFilters.filters)
+        ) {
+            this.setPatientTreatmentFilters(filters.patientTreatmentFilters);
+        }
+        if (
+            filters.sampleTreatmentFilters &&
+            _.isArray(filters.sampleTreatmentFilters.filters)
+        ) {
+            this.setSampleTreatmentFilters(filters.sampleTreatmentFilters);
+        }
+    }
+
+    // a row represents a list of patients that either have or have not recieved
+    // a specific treatment
+    public readonly sampleTreatments = remoteData({
+        await: () => [this.studyViewFilterWithFilteredSampleIdentifiers],
+        invoke: () => {
+            return defaultClient.getAllSampleTreatmentsUsingPOST({
+                studyViewFilter: this.studyViewFilterWithFilteredSampleIdentifiers.result!,
+            });
+        },
+    });
+
+    // a row represents a list of samples that ether have or have not recieved
+    // a specific treatment
+    public readonly patientTreatments = remoteData({
+        await: () => [this.studyViewFilterWithFilteredSampleIdentifiers],
+        invoke: () => {
+            return defaultClient.getAllPatientTreatmentsUsingPOST({
+                studyViewFilter: this.studyViewFilterWithFilteredSampleIdentifiers.result!,
+            });
+        },
+    });
+
+    @autobind
+    public onSampleTreatmentSelection(_: ChartMeta, values: string[][]) {
+        const filters = values.map(outerFilter => {
+            return {
+                filters: outerFilter.map(innerFilter => {
+                    return toSampleTreatmentFilter(innerFilter);
+                })
+            }
+        })
+
+        this.addSampleTreatmentFilters(filters)
+    }
+
+    @autobind
+    public onPatientTreatmentSelection(_: ChartMeta, values: string[][]) {
+        const filters = values.map(outerFilter => {
+            return {
+                filters: outerFilter.map(innerFilter => {
+                    return toPatientTreatmentFilter(innerFilter);
+                })
+            }
+        })
+
+        this.addPatientTreatmentFilters(filters)
+    }
+
+    @autobind
+    public removeSampleTreatmentsFilter(outerIndex: number, innerIndex: number) {
+        const updatedFilters = this.sampleTreatmentFilters.filters.map((oFil, oInd) => {
+            return {
+                filters: oFil.filters.filter((_, iInd) => {
+                    return !(outerIndex === oInd && innerIndex === iInd);
+                })
+            };
+        }).filter((outerFilter) => outerFilter.filters.length > 0);
+
+        this.setSampleTreatmentFilters({filters: updatedFilters});
+    }
+
+    @autobind
+    public removePatientTreatmentsFilter(outerIndex: number, innerIndex: number) {
+        const updatedFilters = this.sampleTreatmentFilters.filters.map((oFil, oInd) => {
+            return {
+                filters: oFil.filters.filter((_, iInd) => {
+                    return !(outerIndex === oInd && innerIndex === iInd);
+                })
+            };
+        }).filter((outerFilter) => outerFilter.filters.length > 0);
+
+        this.setPatientTreatmentFilters({filters: updatedFilters});
     }
 }

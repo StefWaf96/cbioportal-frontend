@@ -13,6 +13,14 @@ export type AlterationEnrichment = {
         'pValue': number
 
 };
+export type AndedPatientTreatmentFilters = {
+    'filters': Array < OredPatientTreatmentFilters >
+
+};
+export type AndedSampleTreatmentFilters = {
+    'filters': Array < OredSampleTreatmentFilters >
+
+};
 export type CaseListDataCount = {
     'count': number
 
@@ -494,6 +502,18 @@ export type MutationSpectrumFilter = {
         'sampleListId': string
 
 };
+export type OredPatientTreatmentFilters = {
+    'filters': Array < PatientTreatmentFilter >
+
+};
+export type OredSampleTreatmentFilters = {
+    'filters': Array < SampleTreatmentFilter >
+
+};
+export type PatientTreatmentFilter = {
+    'treatment': string
+
+};
 export type Sample = {
     'copyNumberSegmentPresent': boolean
 
@@ -520,6 +540,12 @@ export type SampleIdentifier = {
         'studyId': string
 
 };
+export type SampleTreatmentFilter = {
+    'time': "Pre" | "Post" | "Unknown"
+
+        'treatment': string
+
+};
 export type ServerStatusMessage = {
     'status': string
 
@@ -537,7 +563,11 @@ export type StudyViewFilter = {
         'genomicProfiles': Array < Array < string >
         >
 
+        'patientTreatmentFilters': AndedPatientTreatmentFilters
+
         'sampleIdentifiers': Array < SampleIdentifier >
+
+        'sampleTreatmentFilters': AndedSampleTreatmentFilters
 
         'studyIds': Array < string >
 

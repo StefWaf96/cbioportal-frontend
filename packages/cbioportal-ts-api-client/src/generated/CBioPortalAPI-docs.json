@@ -74,6 +74,10 @@
     },
     {
       "name": "Resource Data"
+    },
+    {
+      "name": "Treatments",
+      "description": " "
     }
   ],
   "paths": {
@@ -5103,6 +5107,82 @@
         },
         "deprecated": false
       }
+    },
+    "/treatments/{studyId}/patient": {
+      "post": {
+        "tags": [
+          "Treatments"
+        ],
+        "summary": "Get all cancer types",
+        "operationId": "getAllPatientTreatmentsUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "studyViewFilter",
+            "description": "Study view filter",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/StudyViewFilter"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/PatientTreatmentRow"
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
+    },
+    "/treatments/{studyId}/sample": {
+      "post": {
+        "tags": [
+          "Treatments"
+        ],
+        "summary": "Get all sample level treatments",
+        "operationId": "getAllSampleTreatmentsUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "studyViewFilter",
+            "description": "Study view filter",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/StudyViewFilter"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/SampleTreatmentRow"
+              }
+            }
+          }
+        },
+        "deprecated": false
+      }
     }
   },
   "definitions": {
@@ -5141,6 +5221,30 @@
         }
       },
       "title": "AlleleSpecificCopyNumber"
+    },
+    "AndedPatientTreatmentFilters": {
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OredPatientTreatmentFilters"
+          }
+        }
+      },
+      "title": "AndedPatientTreatmentFilters"
+    },
+    "AndedSampleTreatmentFilters": {
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OredSampleTreatmentFilters"
+          }
+        }
+      },
+      "title": "AndedSampleTreatmentFilters"
     },
     "CancerStudy": {
       "type": "object",
@@ -5341,6 +5445,21 @@
       },
       "title": "ClinicalData"
     },
+    "ClinicalDataFilter": {
+      "type": "object",
+      "properties": {
+        "attributeId": {
+          "type": "string"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DataFilterValue"
+          }
+        }
+      },
+      "title": "ClinicalDataFilter"
+    },
     "ClinicalDataIdentifier": {
       "type": "object",
       "properties": {
@@ -5540,6 +5659,21 @@
       },
       "title": "CopyNumberSeg"
     },
+    "DataFilterValue": {
+      "type": "object",
+      "properties": {
+        "end": {
+          "type": "number"
+        },
+        "start": {
+          "type": "number"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "title": "DataFilterValue"
+    },
     "DiscreteCopyNumberData": {
       "type": "object",
       "required": [
@@ -5631,6 +5765,27 @@
         }
       },
       "title": "Gene"
+    },
+    "GeneFilter": {
+      "type": "object",
+      "properties": {
+        "geneQueries": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "molecularProfileIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "GeneFilter"
     },
     "GenePanel": {
       "type": "object",
@@ -5843,6 +5998,24 @@
         }
       },
       "title": "GenericAssayMetaFilter"
+    },
+    "GenomicDataFilter": {
+      "type": "object",
+      "properties": {
+        "hugoGeneSymbol": {
+          "type": "string"
+        },
+        "profileType": {
+          "type": "string"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DataFilterValue"
+          }
+        }
+      },
+      "title": "GenomicDataFilter"
     },
     "MolecularDataFilter": {
       "type": "object",
@@ -6254,6 +6427,30 @@
       },
       "title": "NumericGeneMolecularData"
     },
+    "OredPatientTreatmentFilters": {
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PatientTreatmentFilter"
+          }
+        }
+      },
+      "title": "OredPatientTreatmentFilters"
+    },
+    "OredSampleTreatmentFilters": {
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SampleTreatmentFilter"
+          }
+        }
+      },
+      "title": "OredSampleTreatmentFilters"
+    },
     "Patient": {
       "type": "object",
       "required": [
@@ -6308,6 +6505,40 @@
         }
       },
       "title": "PatientIdentifier"
+    },
+    "PatientTreatmentFilter": {
+      "type": "object",
+      "properties": {
+        "treatment": {
+          "type": "string"
+        }
+      },
+      "title": "PatientTreatmentFilter"
+    },
+    "PatientTreatmentRow": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "samples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "studies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "treatment": {
+          "type": "string"
+        }
+      },
+      "title": "PatientTreatmentRow"
     },
     "ReferenceGenomeGene": {
       "type": "object",
@@ -6550,6 +6781,56 @@
       },
       "title": "SampleMolecularIdentifier"
     },
+    "SampleTreatmentFilter": {
+      "type": "object",
+      "properties": {
+        "time": {
+          "type": "string",
+          "enum": [
+            "Pre",
+            "Post",
+            "Unknown"
+          ]
+        },
+        "treatment": {
+          "type": "string"
+        }
+      },
+      "title": "SampleTreatmentFilter"
+    },
+    "SampleTreatmentRow": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "samples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "studies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "time": {
+          "type": "string",
+          "enum": [
+            "Pre",
+            "Post",
+            "Unknown"
+          ]
+        },
+        "treatment": {
+          "type": "string"
+        }
+      },
+      "title": "SampleTreatmentRow"
+    },
     "StructuralVariant": {
       "type": "object",
       "properties": {
@@ -6738,6 +7019,66 @@
         }
       },
       "title": "StructuralVariantFilter"
+    },
+    "StudyViewFilter": {
+      "type": "object",
+      "properties": {
+        "caseLists": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "clinicalDataFilters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ClinicalDataFilter"
+          }
+        },
+        "geneFilters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GeneFilter"
+          }
+        },
+        "genomicDataFilters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GenomicDataFilter"
+          }
+        },
+        "genomicProfiles": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "patientTreatmentFilters": {
+          "$ref": "#/definitions/AndedPatientTreatmentFilters"
+        },
+        "sampleIdentifiers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SampleIdentifier"
+          }
+        },
+        "sampleTreatmentFilters": {
+          "$ref": "#/definitions/AndedSampleTreatmentFilters"
+        },
+        "studyIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "StudyViewFilter"
     },
     "TypeOfCancer": {
       "type": "object",

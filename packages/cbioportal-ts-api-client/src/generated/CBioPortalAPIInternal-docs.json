@@ -1954,6 +1954,30 @@
       },
       "title": "AlterationEnrichment"
     },
+    "AndedPatientTreatmentFilters": {
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OredPatientTreatmentFilters"
+          }
+        }
+      },
+      "title": "AndedPatientTreatmentFilters"
+    },
+    "AndedSampleTreatmentFilters": {
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/OredSampleTreatmentFilters"
+          }
+        }
+      },
+      "title": "AndedSampleTreatmentFilters"
+    },
     "CaseListDataCount": {
       "type": "object",
       "properties": {
@@ -2290,11 +2314,11 @@
       "properties": {
         "creation": {
           "type": "string",
-          "example": "yyyy-MM-dd HH:mm:ss"
+          "format": "date-time"
         },
         "expiration": {
           "type": "string",
-          "example": "yyyy-MM-dd HH:mm:ss"
+          "format": "date-time"
         },
         "token": {
           "type": "string"
@@ -3027,6 +3051,39 @@
       },
       "title": "MutationSpectrumFilter"
     },
+    "OredPatientTreatmentFilters": {
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PatientTreatmentFilter"
+          }
+        }
+      },
+      "title": "OredPatientTreatmentFilters"
+    },
+    "OredSampleTreatmentFilters": {
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SampleTreatmentFilter"
+          }
+        }
+      },
+      "title": "OredSampleTreatmentFilters"
+    },
+    "PatientTreatmentFilter": {
+      "type": "object",
+      "properties": {
+        "treatment": {
+          "type": "string"
+        }
+      },
+      "title": "PatientTreatmentFilter"
+    },
     "Sample": {
       "type": "object",
       "required": [
@@ -3086,6 +3143,23 @@
       },
       "title": "SampleIdentifier"
     },
+    "SampleTreatmentFilter": {
+      "type": "object",
+      "properties": {
+        "time": {
+          "type": "string",
+          "enum": [
+            "Pre",
+            "Post",
+            "Unknown"
+          ]
+        },
+        "treatment": {
+          "type": "string"
+        }
+      },
+      "title": "SampleTreatmentFilter"
+    },
     "ServerStatusMessage": {
       "type": "object",
       "properties": {
@@ -3134,11 +3208,17 @@
             }
           }
         },
+        "patientTreatmentFilters": {
+          "$ref": "#/definitions/AndedPatientTreatmentFilters"
+        },
         "sampleIdentifiers": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/SampleIdentifier"
           }
+        },
+        "sampleTreatmentFilters": {
+          "$ref": "#/definitions/AndedSampleTreatmentFilters"
         },
         "studyIds": {
           "type": "array",

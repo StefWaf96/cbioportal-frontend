@@ -208,6 +208,8 @@ describe('StudyViewUtils', () => {
                         ],
                     },
                 ],
+                sampleTreatmentFilters: {filters: []},
+                patientTreatmentFilters: {filters: []},
                 genomicDataFilters: [],
                 geneFilters: [
                     {
