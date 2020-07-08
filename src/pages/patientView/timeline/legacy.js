@@ -278,6 +278,7 @@ export function buildTimeline(
         ])
         .splitByClinicalAttributes('Lab_test', 'TEST');
     var splitData = window.pvTimeline.data();
+
     // Get TEST names that have a RESULT field in their clinical
     // tooltip table. We assume the RESULT field contains
     // integer/float values that can be used to size the dots on the

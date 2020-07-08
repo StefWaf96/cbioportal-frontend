@@ -78,7 +78,7 @@ import {
 import ResourcesTab, { RESOURCES_TAB_NAME } from './resources/ResourcesTab';
 import { MakeMobxView } from '../../shared/components/MobxView';
 import ResourceTab from '../../shared/components/resources/ResourceTab';
-import Timeline2 from 'pages/patientView/timeline2/App';
+import TimelineWrapper from './timeline2/TimelineWrapper';
 
 export interface IPatientViewPageProps {
     params: any; // react route
@@ -889,7 +889,7 @@ export default class PatientViewPage extends React.Component<
                                                         minHeight: 300,
                                                     }}
                                                 >
-                                                    <Timeline2
+                                                    <TimelineWrapper
                                                         caseMetaData={{
                                                             color:
                                                                 sampleManager.sampleColors,
@@ -903,6 +903,9 @@ export default class PatientViewPage extends React.Component<
                                                                 .patientViewPageStore
                                                                 .clinicalEvents
                                                                 .result
+                                                        }
+                                                        sampleManager={
+                                                            sampleManager
                                                         }
                                                     />
                                                 </div>

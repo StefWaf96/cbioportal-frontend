@@ -1,4 +1,5 @@
-import { TimelineEvent } from '../types';
+import { TimelineEvent, TimelineTick } from '../types';
+import { intersect } from './intersect';
 import _ from 'lodash';
 
 export function getAttributeValue(name: string, event: TimelineEvent) {
@@ -8,10 +9,6 @@ export function getAttributeValue(name: string, event: TimelineEvent) {
         : undefined;
     return attObj ? attObj.value : undefined;
 }
-
-import { TickIntervalEnum, TimelineEvent, TimelineTick } from '../types';
-import { intersect } from './intersect';
-import _ from 'lodash';
 
 const TRIM_TICK_THRESHHOLD = 4;
 

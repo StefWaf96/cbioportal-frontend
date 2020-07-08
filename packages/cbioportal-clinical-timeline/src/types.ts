@@ -8,8 +8,10 @@ export interface TimelineEvent {
 export interface TimelineTrack {
     items: TimelineEvent[];
     type: string;
+    label?: string;
     tracks?: TimelineTrack[];
     render?: (e: TimelineEvent) => JSX.Element | string;
+    renderTooltip?: (e: TimelineEvent) => JSX.Element | string;
 }
 
 export interface TimelineTick {

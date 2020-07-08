@@ -46,6 +46,14 @@ export const TimelineRow: React.FunctionComponent<
         eventsGroupedByPosition = groupEventsByPosition(trackData.items);
     }
 
+    // we want to sort tracks by start date of first item
+    let sortedRows: TimelineTrack[] | undefined;
+    if (trackData.tracks) {
+        sortedRows = _.sortBy(trackData.tracks, t =>
+            t.items && t.items.length ? t.items[0].start : 0
+        );
+    }
+
     return (
         <>
             {trackData.tracks && trackData.tracks.length && (
@@ -55,7 +63,7 @@ export const TimelineRow: React.FunctionComponent<
                         onMouseEnter={handleMouseHover}
                         onMouseLeave={handleMouseHover}
                     ></div>
-                    {trackData.tracks.map(track => (
+                    {sortedRows!.map(track => (
                         <TimelineRow
                             handleMouseHover={handleMouseHover}
                             trackData={track}
@@ -124,46 +132,10 @@ export const TimelineRow: React.FunctionComponent<
                                 } // typings are wrong
                                 overlayClassName={'tl-timeline-tooltip'}
                                 overlay={() => {
-                                    return (
-                                        <table>
-                                            {_.map(
-                                                item.event.attributes,
-                                                (att: any) => {
-                                                    return (
-                                                        <tr>
-                                                            <th>
-                                                                {att.key.replace(
-                                                                    '_',
-                                                                    ' '
-                                                                )}
-                                                            </th>
-                                                            <td>{att.value}</td>
-                                                        </tr>
-                                                    );
-                                                }
-                                            )}
-                                            <tr>
-                                                <th>START DATE:</th>
-                                                <td>
-                                                    {
-                                                        item.event
-                                                            .startNumberOfDaysSinceDiagnosis
-                                                    }
-                                                </td>
-                                            </tr>
-                                            {item.event
-                                                .endNumberOfDaysSinceDiagnosis && (
-                                                <tr>
-                                                    <th>END DATE:</th>
-                                                    <td>
-                                                        {
-                                                            item.event
-                                                                .endNumberOfDaysSinceDiagnosis
-                                                        }
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </table>
+                                    return trackData.renderTooltip ? (
+                                        trackData.renderTooltip(item)
+                                    ) : (
+                                        <EventTooltipContent event={item} />
                                     );
                                 }}
                             >
@@ -183,5 +155,32 @@ export const TimelineRow: React.FunctionComponent<
                 </div>
             )}
         </>
+    );
+};
+
+const EventTooltipContent: React.FunctionComponent<{
+    event: TimelineEvent;
+}> = function({ event }) {
+    return (
+        <table>
+            {_.map(event.event.attributes, (att: any) => {
+                return (
+                    <tr>
+                        <th>{att.key.replace('_', ' ')}</th>
+                        <td>{att.value}</td>
+                    </tr>
+                );
+            })}
+            <tr>
+                <th>START DATE:</th>
+                <td>{event.event.startNumberOfDaysSinceDiagnosis}</td>
+            </tr>
+            {event.event.endNumberOfDaysSinceDiagnosis && (
+                <tr>
+                    <th>END DATE:</th>
+                    <td>{event.event.endNumberOfDaysSinceDiagnosis}</td>
+                </tr>
+            )}
+        </table>
     );
 };

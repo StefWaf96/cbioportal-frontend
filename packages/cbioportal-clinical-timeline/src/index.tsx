@@ -6,8 +6,6 @@ export { default as Timeline } from './Timeline';
 
 export * from './lib/helpers';
 
-export * from './lib/tick_helpers';
-
 export * from './types';
 
 export * from './configureTracks';
