@@ -8791,7 +8791,7 @@ export default class CBioPortalAPI {
         $queryParameters ? : any
     }): string {
         let queryParameters: any = {};
-        let path = '/treatments/{studyId}/patient';
+        let path = '/treatments/patient';
 
         if (parameters.$queryParameters) {
             Object.keys(parameters.$queryParameters).forEach(function(parameterName) {
@@ -8817,7 +8817,7 @@ export default class CBioPortalAPI {
         const domain = parameters.$domain ? parameters.$domain : this.domain;
         const errorHandlers = this.errorHandlers;
         const request = this.request;
-        let path = '/treatments/{studyId}/patient';
+        let path = '/treatments/patient';
         let body: any;
         let queryParameters: any = {};
         let headers: any = {};
@@ -8868,7 +8868,7 @@ export default class CBioPortalAPI {
         $queryParameters ? : any
     }): string {
         let queryParameters: any = {};
-        let path = '/treatments/{studyId}/sample';
+        let path = '/treatments/sample';
 
         if (parameters.$queryParameters) {
             Object.keys(parameters.$queryParameters).forEach(function(parameterName) {
@@ -8894,7 +8894,7 @@ export default class CBioPortalAPI {
         const domain = parameters.$domain ? parameters.$domain : this.domain;
         const errorHandlers = this.errorHandlers;
         const request = this.request;
-        let path = '/treatments/{studyId}/sample';
+        let path = '/treatments/sample';
         let body: any;
         let queryParameters: any = {};
         let headers: any = {};
