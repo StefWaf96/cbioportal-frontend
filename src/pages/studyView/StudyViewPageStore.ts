@@ -33,6 +33,8 @@ import {
     OredPatientTreatmentFilters,
     OredSampleTreatmentFilters,
     SampleTreatmentFilter,
+    SampleTreatmentRow,
+    PatientTreatmentRow,
 } from 'cbioportal-ts-api-client';
 import {
     CancerStudy,
@@ -176,7 +178,12 @@ import {
     getSurvivalStatusBoolean,
 } from 'pages/resultsView/survival/SurvivalUtil';
 import { ISurvivalDescription } from 'pages/resultsView/survival/SurvivalDescriptionTable';
-import { toSampleTreatmentFilter, toPatientTreatmentFilter, sampleTreatmentUniqueKey, patientTreatmentUniqueKey } from './table/treatments/treatmentsTableUtil';
+import {
+    toSampleTreatmentFilter,
+    toPatientTreatmentFilter,
+    sampleTreatmentUniqueKey,
+    patientTreatmentUniqueKey,
+} from './table/treatments/treatmentsTableUtil';
 import StudyViewURLWrapper from './StudyViewURLWrapper';
 import { isMixedReferenceGenome } from 'shared/lib/referenceGenomeUtils';
 import { Datalabel } from 'shared/lib/DataUtils';
@@ -573,22 +580,28 @@ export class StudyViewPageStore {
                             const entityIdKey = clinicalAttribute.patientAttribute
                                 ? 'patientId'
                                 : 'sampleId';
-                            data = await defaultClient.fetchClinicalDataUsingPOST(
-                                {
-                                    clinicalDataType: clinicalAttribute.patientAttribute
-                                        ? ClinicalDataTypeEnum.PATIENT
-                                        : ClinicalDataTypeEnum.SAMPLE,
-                                    clinicalDataMultiStudyFilter: {
-                                        attributeIds: [
-                                            clinicalAttribute.clinicalAttributeId,
-                                        ],
-                                        identifiers: selectedSamples.map(s => ({
-                                            studyId: s.studyId,
-                                            entityId: s[entityIdKey],
-                                        })),
-                                    },
-                                }
-                            );
+                            if (selectedSamples.length === 0) {
+                                data = [];
+                            } else {
+                                data = await defaultClient.fetchClinicalDataUsingPOST(
+                                    {
+                                        clinicalDataType: clinicalAttribute.patientAttribute
+                                            ? ClinicalDataTypeEnum.PATIENT
+                                            : ClinicalDataTypeEnum.SAMPLE,
+                                        clinicalDataMultiStudyFilter: {
+                                            attributeIds: [
+                                                clinicalAttribute.clinicalAttributeId,
+                                            ],
+                                            identifiers: selectedSamples.map(
+                                                s => ({
+                                                    studyId: s.studyId,
+                                                    entityId: s[entityIdKey],
+                                                })
+                                            ),
+                                        },
+                                    }
+                                );
+                            }
                         }
                     }
 
@@ -3412,8 +3425,8 @@ export class StudyViewPageStore {
         );
 
         if (!_.isEmpty(this.sampleTreatments.result)) {
-            _chartMetaSet["SAMPLE_TREATMENTS"] = {
-                uniqueKey: "SAMPLE_TREATMENTS",
+            _chartMetaSet['SAMPLE_TREATMENTS'] = {
+                uniqueKey: 'SAMPLE_TREATMENTS',
                 dataType: ChartMetaDataTypeEnum.CLINICAL,
                 patientAttribute: true,
                 displayName: 'Sample Treatments',
@@ -3422,12 +3435,12 @@ export class StudyViewPageStore {
                 ),
                 renderWhenDataChange: true,
                 description: '',
-            }
+            };
         }
 
         if (!_.isEmpty(this.patientTreatments.result)) {
-            _chartMetaSet["PATIENT_TREATMENTS"] = {
-                uniqueKey: "PATIENT_TREATMENTS",
+            _chartMetaSet['PATIENT_TREATMENTS'] = {
+                uniqueKey: 'PATIENT_TREATMENTS',
                 dataType: ChartMetaDataTypeEnum.CLINICAL,
                 patientAttribute: true,
                 displayName: 'Patient Treatments',
@@ -3436,7 +3449,7 @@ export class StudyViewPageStore {
                 ),
                 renderWhenDataChange: true,
                 description: '',
-            }
+            };
         }
 
         if (!_.isEmpty(this.mutationProfiles.result)) {
@@ -3564,7 +3577,7 @@ export class StudyViewPageStore {
 
     @computed
     get visibleAttributes(): ChartMeta[] {
-        console.log("vs", this._chartVisibility.keys());
+        console.log('vs', this._chartVisibility.keys());
         return _.reduce(
             this._chartVisibility.entries(),
             (acc, [chartUniqueKey, visible]) => {
@@ -3618,9 +3631,7 @@ export class StudyViewPageStore {
             this.mutationProfiles.isPending ||
             this.cnaProfiles.isPending ||
             this.structuralVariantProfiles.isPending ||
-            this.survivalClinicalAttributesPrefix.isPending ||
-            this.patientTreatments.isPending ||
-            this.sampleTreatments.isPending;
+            this.survivalClinicalAttributesPrefix.isPending;
 
         if (
             this.clinicalAttributes.isComplete &&
@@ -4064,12 +4075,16 @@ export class StudyViewPageStore {
         );
         this.chartsDimension.set(
             SpecialChartsUniqueKeyEnum.SAMPLE_TREATMENTS,
-            STUDY_VIEW_CONFIG.layout.dimensions[ChartTypeEnum.SAMPLE_TREATMENTS_TABLE]
-        )
+            STUDY_VIEW_CONFIG.layout.dimensions[
+                ChartTypeEnum.SAMPLE_TREATMENTS_TABLE
+            ]
+        );
         this.chartsDimension.set(
             SpecialChartsUniqueKeyEnum.PATIENT_TREATMENTS,
-            STUDY_VIEW_CONFIG.layout.dimensions[ChartTypeEnum.SAMPLE_TREATMENTS_TABLE]
-        )
+            STUDY_VIEW_CONFIG.layout.dimensions[
+                ChartTypeEnum.SAMPLE_TREATMENTS_TABLE
+            ]
+        );
         if (
             mutationCountFlag &&
             fractionGenomeAlteredFlag &&
@@ -4512,7 +4527,9 @@ export class StudyViewPageStore {
     >({
         await: () => [this.selectedSamples],
         invoke: () => {
-            console.log("redoing sampleViewFilterWithFilteredSampleIdentifiers");
+            console.log(
+                'redoing sampleViewFilterWithFilteredSampleIdentifiers'
+            );
 
             const sampleIdentifiers = this.selectedSamples.result.map(
                 sample => {
@@ -4526,7 +4543,6 @@ export class StudyViewPageStore {
         },
         onError: error => {},
     });
-
 
     @computed
     get selectedSamplesMap() {
@@ -5378,6 +5394,9 @@ export class StudyViewPageStore {
     readonly sampleMutationCountAndFractionGenomeAlteredData = remoteData({
         await: () => [this.clinicalAttributes, this.selectedSamples],
         invoke: () => {
+            if (this.selectedSamples.result.length === 0) {
+                return new Promise(() => []) as Promise<Array<ClinicalData>>;
+            }
             const filter: ClinicalDataMultiStudyFilter = {
                 attributeIds: [
                     SpecialChartsUniqueKeyEnum.MUTATION_COUNT,
@@ -5461,6 +5480,9 @@ export class StudyViewPageStore {
         await: () => [this.clinicalAttributes, this.selectedSamples],
         onError: error => {},
         invoke: async () => {
+            if (this.selectedSamples.result.length === 0) {
+                return new Promise(() => []) as Promise<Array<any>>;
+            }
             let sampleClinicalDataMap: {
                 [attributeId: string]: { [attributeId: string]: string };
             } = await getClinicalDataBySamples(this.selectedSamples.result);
@@ -5635,6 +5657,12 @@ export class StudyViewPageStore {
         await: () => [this.selectedSamples],
         onError: error => {},
         invoke: () => {
+            if (this.selectedSamples.result.length === 0) {
+                return new Promise(() => []) as Promise<
+                    Array<ClinicalAttributeCount>
+                >;
+            }
+
             let sampleIdentifiers = this.selectedSamples.result.map(sample => {
                 return {
                     sampleId: sample.sampleId,
@@ -5659,7 +5687,7 @@ export class StudyViewPageStore {
             this.mutationCountVsFractionGenomeAlteredDataSet,
             this.molecularProfileOptions,
             this.sampleTreatments,
-            this.patientTreatments
+            this.patientTreatments,
         ],
         invoke: async () => {
             if (!_.isEmpty(this.chartMetaSet)) {
@@ -5718,10 +5746,10 @@ export class StudyViewPageStore {
                 }
 
                 if (!_.isEmpty(this.sampleTreatments.result)) {
-                    ret["SAMPLE_TREATMENTS"] = 1;
+                    ret['SAMPLE_TREATMENTS'] = 1;
                 }
                 if (!_.isEmpty(this.patientTreatments.result)) {
-                    ret["PATIENT_TREATMENTS"] = 1;
+                    ret['PATIENT_TREATMENTS'] = 1;
                 }
 
                 if (!_.isEmpty(this.structuralVariantProfiles.result)) {
@@ -6364,15 +6392,15 @@ export class StudyViewPageStore {
     @computed
     get sampleTreatmentFiltersAsStrings(): string[][] {
         return this.sampleTreatmentFilters.filters.map(outer => {
-            return outer.filters.map(sampleTreatmentUniqueKey)
-        })
+            return outer.filters.map(sampleTreatmentUniqueKey);
+        });
     }
 
     @computed
     get patientTreatmentFiltersAsStrings(): string[][] {
         return this.patientTreatmentFilters.filters.map(outer => {
-            return outer.filters.map(patientTreatmentUniqueKey)
-        })
+            return outer.filters.map(patientTreatmentUniqueKey);
+        });
     }
 
     @action
@@ -6428,10 +6456,19 @@ export class StudyViewPageStore {
     // a row represents a list of patients that either have or have not recieved
     // a specific treatment
     public readonly sampleTreatments = remoteData({
-        await: () => [this.studyViewFilterWithFilteredSampleIdentifiers],
+        await: () => [
+            this.studyViewFilterWithFilteredSampleIdentifiers,
+            this.selectedSamples,
+        ],
         invoke: () => {
+            if (this.selectedSamples.result.length === 0) {
+                return new Promise(() => []) as Promise<
+                    Array<SampleTreatmentRow>
+                >;
+            }
             return defaultClient.getAllSampleTreatmentsUsingPOST({
-                studyViewFilter: this.studyViewFilterWithFilteredSampleIdentifiers.result!,
+                studyViewFilter: this
+                    .studyViewFilterWithFilteredSampleIdentifiers.result!,
             });
         },
     });
@@ -6439,10 +6476,19 @@ export class StudyViewPageStore {
     // a row represents a list of samples that ether have or have not recieved
     // a specific treatment
     public readonly patientTreatments = remoteData({
-        await: () => [this.studyViewFilterWithFilteredSampleIdentifiers],
+        await: () => [
+            this.studyViewFilterWithFilteredSampleIdentifiers,
+            this.selectedSamples,
+        ],
         invoke: () => {
+            if (this.selectedSamples.result.length === 0) {
+                return new Promise(() => []) as Promise<
+                    Array<PatientTreatmentRow>
+                >;
+            }
             return defaultClient.getAllPatientTreatmentsUsingPOST({
-                studyViewFilter: this.studyViewFilterWithFilteredSampleIdentifiers.result!,
+                studyViewFilter: this
+                    .studyViewFilterWithFilteredSampleIdentifiers.result!,
             });
         },
     });
@@ -6453,11 +6499,11 @@ export class StudyViewPageStore {
             return {
                 filters: outerFilter.map(innerFilter => {
                     return toSampleTreatmentFilter(innerFilter);
-                })
-            }
-        })
+                }),
+            };
+        });
 
-        this.addSampleTreatmentFilters(filters)
+        this.addSampleTreatmentFilters(filters);
     }
 
     @autobind
@@ -6466,36 +6512,46 @@ export class StudyViewPageStore {
             return {
                 filters: outerFilter.map(innerFilter => {
                     return toPatientTreatmentFilter(innerFilter);
-                })
-            }
-        })
+                }),
+            };
+        });
 
-        this.addPatientTreatmentFilters(filters)
+        this.addPatientTreatmentFilters(filters);
     }
 
     @autobind
-    public removeSampleTreatmentsFilter(outerIndex: number, innerIndex: number) {
-        const updatedFilters = this.sampleTreatmentFilters.filters.map((oFil, oInd) => {
-            return {
-                filters: oFil.filters.filter((_, iInd) => {
-                    return !(outerIndex === oInd && innerIndex === iInd);
-                })
-            };
-        }).filter((outerFilter) => outerFilter.filters.length > 0);
+    public removeSampleTreatmentsFilter(
+        outerIndex: number,
+        innerIndex: number
+    ) {
+        const updatedFilters = this.sampleTreatmentFilters.filters
+            .map((oFil, oInd) => {
+                return {
+                    filters: oFil.filters.filter((_, iInd) => {
+                        return !(outerIndex === oInd && innerIndex === iInd);
+                    }),
+                };
+            })
+            .filter(outerFilter => outerFilter.filters.length > 0);
 
-        this.setSampleTreatmentFilters({filters: updatedFilters});
+        this.setSampleTreatmentFilters({ filters: updatedFilters });
     }
 
     @autobind
-    public removePatientTreatmentsFilter(outerIndex: number, innerIndex: number) {
-        const updatedFilters = this.sampleTreatmentFilters.filters.map((oFil, oInd) => {
-            return {
-                filters: oFil.filters.filter((_, iInd) => {
-                    return !(outerIndex === oInd && innerIndex === iInd);
-                })
-            };
-        }).filter((outerFilter) => outerFilter.filters.length > 0);
+    public removePatientTreatmentsFilter(
+        outerIndex: number,
+        innerIndex: number
+    ) {
+        const updatedFilters = this.sampleTreatmentFilters.filters
+            .map((oFil, oInd) => {
+                return {
+                    filters: oFil.filters.filter((_, iInd) => {
+                        return !(outerIndex === oInd && innerIndex === iInd);
+                    }),
+                };
+            })
+            .filter(outerFilter => outerFilter.filters.length > 0);
 
-        this.setPatientTreatmentFilters({filters: updatedFilters});
+        this.setPatientTreatmentFilters({ filters: updatedFilters });
     }
 }

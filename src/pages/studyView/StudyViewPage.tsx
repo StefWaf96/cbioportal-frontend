@@ -291,7 +291,7 @@ export default class StudyViewPage extends React.Component<
                 ..._.values(this.store.clinicalDataCountPromises),
                 ..._.values(this.store.customChartsPromises),
                 this.store.mutationProfiles,
-                this.store.cnaProfiles, 
+                this.store.cnaProfiles,
                 this.store.selectedSamples,
                 this.store.molecularProfileSampleCounts,
                 this.store.sampleTreatments,
@@ -519,6 +519,10 @@ export default class StudyViewPage extends React.Component<
                                         }
                                         linkText={
                                             StudyViewPageTabDescriptions.CLINICAL_DATA
+                                        }
+                                        hide={
+                                            this.store.selectedSamples.result
+                                                .length === 0
                                         }
                                     >
                                         <ClinicalDataTab store={this.store} />

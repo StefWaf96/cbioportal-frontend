@@ -8,7 +8,10 @@ import {
     Column,
     SortDirection,
 } from '../../../../shared/components/lazyMobXTable/LazyMobXTable';
-import { SampleTreatmentRow, PatientTreatmentRow } from 'cbioportal-ts-api-client';
+import {
+    SampleTreatmentRow,
+    PatientTreatmentRow,
+} from 'cbioportal-ts-api-client';
 import { correctColumnWidth } from 'pages/studyView/StudyViewUtils';
 import { SelectionOperatorEnum } from 'pages/studyView/TableUtils';
 import LabeledCheckbox from 'shared/components/labeledCheckbox/LabeledCheckbox';
@@ -19,7 +22,10 @@ import {
     stringListToSet,
 } from 'cbioportal-frontend-commons';
 import ifNotDefined from 'shared/lib/ifNotDefined';
-import { sampleTreatmentUniqueKey, TreatmentTableType } from './treatmentsTableUtil';
+import {
+    sampleTreatmentUniqueKey,
+    TreatmentTableType,
+} from './treatmentsTableUtil';
 
 export enum SampleTreatmentsTableColumnKey {
     TREATMENT = 'Treatment',
@@ -57,7 +63,10 @@ class MultiSelectionTableComponent extends FixedHeaderTable<
 > {}
 
 @observer
-export class SampleTreatmentsTable extends React.Component<SampleTreatmentsTableProps, {}> {
+export class SampleTreatmentsTable extends React.Component<
+    SampleTreatmentsTableProps,
+    {}
+> {
     @observable protected selectedRowsKeys: string[] = [];
     @observable protected sortBy: SampleTreatmentsTableColumnKey;
     @observable private sortDirection: SortDirection;
@@ -102,7 +111,9 @@ export class SampleTreatmentsTable extends React.Component<SampleTreatmentsTable
             <LabeledCheckbox
                 checked={this.isChecked(sampleTreatmentUniqueKey(row))}
                 disabled={this.isDisabled(sampleTreatmentUniqueKey(row))}
-                onChange={_ => this.togglePreSelectRow(sampleTreatmentUniqueKey(row))}
+                onChange={_ =>
+                    this.togglePreSelectRow(sampleTreatmentUniqueKey(row))
+                }
                 labelProps={{
                     style: {
                         display: 'flex',
@@ -217,7 +228,8 @@ export class SampleTreatmentsTable extends React.Component<SampleTreatmentsTable
         }
         return _.filter(
             this.tableData,
-            data => !this.flattenedFilters.includes(sampleTreatmentUniqueKey(data))
+            data =>
+                !this.flattenedFilters.includes(sampleTreatmentUniqueKey(data))
         );
     }
 
@@ -228,7 +240,9 @@ export class SampleTreatmentsTable extends React.Component<SampleTreatmentsTable
         }
         const order = stringListToIndexSet(this.flattenedFilters);
         return _.chain(this.tableData)
-            .filter(data => this.flattenedFilters.includes(sampleTreatmentUniqueKey(data)))
+            .filter(data =>
+                this.flattenedFilters.includes(sampleTreatmentUniqueKey(data))
+            )
             .sortBy<SampleTreatmentRow>(data =>
                 ifNotDefined(
                     order[sampleTreatmentUniqueKey(data)],
@@ -316,10 +330,16 @@ export class SampleTreatmentsTable extends React.Component<SampleTreatmentsTable
         if (this._selectionType) {
             return this._selectionType;
         }
-        return (
-            localStorage.getItem(this.props.tableType) ||
-            SelectionOperatorEnum.UNION
-        ).toUpperCase() as SelectionOperatorEnum;
+        switch (
+            (localStorage.getItem(this.props.tableType) || '').toUpperCase()
+        ) {
+            case SelectionOperatorEnum.INTERSECTION:
+                return SelectionOperatorEnum.INTERSECTION;
+            case SelectionOperatorEnum.UNION:
+                return SelectionOperatorEnum.UNION;
+            default:
+                return SelectionOperatorEnum.UNION;
+        }
     }
 
     @autobind

@@ -310,10 +310,16 @@ export class PatientTreatmentsTable extends React.Component<
         if (this._selectionType) {
             return this._selectionType;
         }
-        return (
-            localStorage.getItem(this.props.tableType) ||
-            SelectionOperatorEnum.UNION
-        ).toUpperCase() as SelectionOperatorEnum;
+        switch (
+            (localStorage.getItem(this.props.tableType) || '').toUpperCase()
+        ) {
+            case SelectionOperatorEnum.INTERSECTION:
+                return SelectionOperatorEnum.INTERSECTION;
+            case SelectionOperatorEnum.UNION:
+                return SelectionOperatorEnum.UNION;
+            default:
+                return SelectionOperatorEnum.UNION;
+        }
     }
 
     @autobind

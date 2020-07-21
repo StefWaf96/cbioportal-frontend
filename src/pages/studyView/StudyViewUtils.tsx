@@ -825,7 +825,11 @@ export function isFiltered(
             _.isEmpty(filter.geneFilters) &&
             _.isEmpty(filter.genomicProfiles) &&
             _.isEmpty(filter.genomicDataFilters) &&
-            _.isEmpty(filter.caseLists))
+            _.isEmpty(filter.caseLists) &&
+            filter.patientTreatmentFilters &&
+            _.isEmpty(filter.patientTreatmentFilters.filters) &&
+            filter.sampleTreatmentFilters &&
+            _.isEmpty(filter.sampleTreatmentFilters.filters))
     );
 
     if (filter.sampleIdentifiersSet) {
