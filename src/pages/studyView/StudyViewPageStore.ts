@@ -181,8 +181,7 @@ import { ISurvivalDescription } from 'pages/resultsView/survival/SurvivalDescrip
 import {
     toSampleTreatmentFilter,
     toPatientTreatmentFilter,
-    sampleTreatmentUniqueKey,
-    patientTreatmentUniqueKey,
+    treatmentUniqueKey,
 } from './table/treatments/treatmentsTableUtil';
 import StudyViewURLWrapper from './StudyViewURLWrapper';
 import { isMixedReferenceGenome } from 'shared/lib/referenceGenomeUtils';
@@ -6392,14 +6391,14 @@ export class StudyViewPageStore {
     @computed
     get sampleTreatmentFiltersAsStrings(): string[][] {
         return this.sampleTreatmentFilters.filters.map(outer => {
-            return outer.filters.map(sampleTreatmentUniqueKey);
+            return outer.filters.map(treatmentUniqueKey);
         });
     }
 
     @computed
     get patientTreatmentFiltersAsStrings(): string[][] {
         return this.patientTreatmentFilters.filters.map(outer => {
-            return outer.filters.map(patientTreatmentUniqueKey);
+            return outer.filters.map(treatmentUniqueKey);
         });
     }
 
